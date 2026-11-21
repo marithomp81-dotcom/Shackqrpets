@@ -14,6 +14,24 @@ nav button{flex:1;background:none;color:var(--mu);border-radius:0;padding:10px 0
 .row{display:flex;justify-content:space-between;align-items:center;gap:8px}.mu{color:var(--mu);font-size:13px}
 .log{max-height:200px;overflow:auto;font-size:14px}.win{color:#2fa86a;font-weight:700}.lose{color:#e04a4a;font-weight:700}
 .bar{height:10px;background:var(--ln);border-radius:9px;overflow:hidden;margin:3px 0 10px}.bar i{display:block;height:100%;background:#2fa86a;transition:width .3s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes bobf{0%,100%{transform:translateY(0) scaleX(-1)}50%{transform:translateY(-8px) scaleX(-1)}}
+@keyframes lm{0%,100%{transform:translateX(0)}40%{transform:translateX(70px) scale(1.15)}}
+@keyframes lo{0%,100%{transform:translateX(0)}40%{transform:translateX(-70px) scale(1.15)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+@keyframes glow{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@keyframes up{0%{opacity:0;transform:translate(-50%,10px)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-44px)}}
+.em{animation:bob 2s ease-in-out infinite}
+.stage{display:flex;justify-content:space-around;align-items:flex-end;height:170px;background:linear-gradient(var(--bg),var(--ln));border-radius:12px;margin-bottom:10px;overflow:hidden}
+.fig{position:relative;width:45%;text-align:center;transition:opacity .4s}.fig .sp{font-size:72px;line-height:1.1;animation:bob 1.6s ease-in-out infinite}.fig.o .sp{animation-name:bobf}
+.fig.m.atk{animation:lm .6s}.fig.o.atk{animation:lo .6s}.fig.hit{animation:shake .5s;filter:drop-shadow(0 0 10px #e04a4a)}.fig.stun{animation:shake .5s;filter:drop-shadow(0 0 10px #e0c020)}
+.fig.heal{animation:glow .7s;filter:drop-shadow(0 0 12px #2fa86a)}.fig.buff{animation:glow .7s;filter:drop-shadow(0 0 12px #2f7be0)}
+.fig.ko{opacity:.35;transform:rotate(80deg) translateY(20px)}.fig.ko .sp{animation:none}
+.pop{position:absolute;top:0;left:50%;font-weight:800;font-size:24px;color:#e04a4a;pointer-events:none;animation:up 1s forwards}.heal .pop{color:#2fa86a}
+.hab{position:relative;height:230px;border-radius:14px;overflow:hidden;background:linear-gradient(#bfe9ff,#9be37d 62%,#6cc35a);border:1px solid var(--ln);margin:10px 0 6px}
+.wp{position:absolute;left:0;top:0;width:48px;height:48px;cursor:pointer}.sp2{font-size:36px;line-height:48px;text-align:center;animation:bob .9s ease-in-out infinite}
+.wp.act .fl{filter:drop-shadow(0 0 6px gold) drop-shadow(0 0 2px gold)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style></head><body>
 <div class="top"><h2>🐾 QR Pets</h2><div class="coin">🪙 <span id="co"></span> <span id="ut"></span></div></div>
 <div id="v"><div class="card">Loading…</div></div><nav id="nv"></nav>
@@ -40,23 +58,8 @@ function daily(){const w=20*36e5-(Date.now()-(S.daily||0));if(w>0){msg=`⏳ Next
 let id,n=0;do{id=Math.floor(Math.random()*600)}while(S.pets.includes(id)&&++n<50);give(id,"🎁 Free daily pet: ");S.daily=Date.now();save();render()}
 const dm=(x,y)=>Math.max(1,Math.round(x.a*(x.t==(y.t+2)%3?1.3:x.t==(y.t+1)%3?.8:1)-y.d/2+Math.random()*4));
 const mk=p=>({p,hp:p.hp,max:p.hp,sh:0,stun:0,psn:0,cd:{}});
-function start(op,pvp){const me=eff(pet(S.act));B={m:mk(me),o:mk(op),log:[`${me.em} ${me.name} vs ${op.em} ${op.name}`],over:0,pvp};tab="fight";render()}
+function start(op,pvp){const me=eff(pet(S.act));B={m:mk(me),o:mk(op),log:[`${me.em} ${me.name} vs ${op.em} ${op.name}`],over:0,pvp,fx:{},pop:{}};tab="fight";render()}
 function pve(){const me=pet(S.act),mr=Math.min(4,me.r+(Math.random()<.3?1:0));let id;do{id=Math.floor(Math.random()*1000)}while(rar(id)>mr);const sc=.8+Math.random()*.3,o=pet(id);start({...o,hp:Math.round(o.hp*sc),a:Math.round(o.a*sc)},0)}
-function act(s,k,i){const a=B[s],e=B[s=="m"?"o":"m"],who=s=="m"?"You":"Enemy";
-const hit=m=>{let d=Math.round(dm(a.p,e.p)*m);if(e.sh){d=Math.ceil(d/2);e.sh=0}e.hp-=d;return d};
-if(k=="atk"){const d=hit(1);B.log.push(`${who} hit for ${d}`)}
-else if(k=="def"){a.sh=1;B.log.push(`${who} braced for impact`)}
-else{const n=AB[i];a.cd[i]=4;let t=`${who} used ${n.i} ${n.n}`;
-if(i==0)t+=` for ${hit(1.8)}`;
-if(i==1){const h=Math.round(a.max*.3);a.hp=Math.min(a.max,a.hp+h);t+=` +${h} HP`}
-if(i==2)e.stun=1;if(i==3)a.sh=1;if(i==4)e.psn=3;
-if(i==5){const d=hit(1),h=Math.round(d/2);a.hp=Math.min(a.max,a.hp+h);t+=` for ${d}, +${h} HP`}
-B.log.push(t)}}
-function turn(k,i){if(!B||B.over)return;const m=B.m,o=B.o;
-if(m.stun){m.stun=0;B.log.push("You are stunned!")}else act("m",k,i);
-if(o.hp>0){if(o.stun){o.stun=0;B.log.push("Enemy is stunned!")}else{const av=o.p.ab.filter(x=>!(o.cd[x]>0));if(av.length&&Math.random()<.35)act("o","ab",av[Math.floor(Math.random()*av.length)]);else act("o",Math.random()<.15?"def":"atk")}}
-for(const u of [m,o]){if(u.psn>0){u.psn--;u.hp-=5;B.log.push(`${u===m?"You take":"Enemy takes"} 5 poison`)}for(const x in u.cd)if(u.cd[x]>0)u.cd[x]--}
-if(m.hp<=0||o.hp<=0)end();render()}
 function end(){B.over=1;const w=B.o.hp<=0&&B.m.hp>0,g=w?(B.pvp?30:10)+B.o.p.r*15+Math.floor(Math.random()*10):2;S.coins+=g;if(w&&B.pvp)S.wins++;
 B.log.push(w?`<span class=win>🏆 Victory! +${g} coins</span>`:`<span class=lose>💀 Defeat. +${g} coins</span>`);save();if(w&&B.pvp)pub()}
 function fightP(u){const x=ARENA.find(a=>a.uid==u);if(!x)return;const p=pet(Number(x.id)||0),o=effG(p,{ar:x.ar,ac:x.ac});o.name=`${String(x.nick).slice(0,16)}’s ${p.name}`;start(o,1)}
@@ -71,16 +74,16 @@ const T={scan:"🎟️ Redeem",pets:"🐾 Pets",fight:"⚔️ Fight",arena:"🌐
 nv.innerHTML=Object.keys(T).map(k=>`<button class="${k==tab?"on":""}" onclick="tab='${k}';msg='';render()">${T[k]}</button>`).join("");
 let h=msg?`<div class=card>${msg}</div>`:"";
 if(tab=="scan")h+=`<div class=card><b>Enter a code</b><div class=mu>Each code works once and gives you a pet. Buy codes in the Store tab.</div><input id=ci placeholder="QRP-XXXXXXXX" autocapitalize=characters><button onclick="scan(ci.value)">Redeem</button></div><div class=card><b>🎁 Free daily pet</b><div class=mu>Come back every day for a free pet.</div><button class=s onclick="daily()">Claim</button></div><div class=mu>Collected: ${new Set(S.pets).size}/1000 · Wins: ${S.wins}</div>`;
-if(tab=="pets")h+=[...new Set(S.pets)].map(pet).map(p=>`<div class=card>${card(p,eff(p))}<div class=row><span class=mu>${S.gear[p.id]?`${(ARM[S.gear[p.id].ar]||{}).n||""} ${(ACC[S.gear[p.id].ac]||{}).n||""}`:"No gear"}</span><button class="${S.act==p.id?"":"s"}" onclick="setAct(${p.id})">${S.act==p.id?"Active":"Set active"}</button></div></div>`).join("");
+if(tab=="pets")h+=habitat()+[...new Set(S.pets)].map(pet).map(p=>`<div class=card>${card(p,eff(p))}<div class=row><span class=mu>${S.gear[p.id]?`${(ARM[S.gear[p.id].ar]||{}).n||""} ${(ACC[S.gear[p.id].ac]||{}).n||""}`:"No gear"}</span><button class="${S.act==p.id?"":"s"}" onclick="setAct(${p.id})">${S.act==p.id?"Active":"Set active"}</button></div></div>`).join("");
 if(tab=="fight"){if(!B)h+=`<div class=card>${card(pet(S.act),eff(pet(S.act)))}<button onclick="pve()">Find opponent</button><div class=mu>Win coins, then buy gear in the Shop. Use abilities (they recharge) to win.</div></div>`;
-else{h+=`<div class=card>${bar(B.m)}${bar(B.o)}${B.over?`<button onclick="B=null;render()">Back</button><button class=s onclick="${B.pvp?"tab='arena';B=null;render()":"pve()"}">${B.pvp?"Arena":"Fight again"}</button>`:`<button onclick="turn('atk')">⚔️ Attack</button><button class=s onclick="turn('def')">🛡️ Defend</button>${B.m.p.ab.map(i=>`<button onclick="turn('ab',${i})" ${B.m.cd[i]>0?"disabled":""}>${AB[i].i} ${AB[i].n}${B.m.cd[i]>0?" ("+B.m.cd[i]+")":""}</button>`).join("")}<div class=mu>${B.m.p.ab.map(i=>AB[i].n+": "+AB[i].d).join(" · ")}</div>`}</div><div class="card log">${B.log.slice(-8).reverse().join("<br>")}</div>`}}
+else{h+=`<div class=card>${stage()}${bar(B.m)}${bar(B.o)}${B.over?`<button onclick="B=null;render()">Back</button><button class=s onclick="${B.pvp?"tab='arena';B=null;render()":"pve()"}">${B.pvp?"Arena":"Fight again"}</button>`:`<button onclick="turn('atk')" ${B.busy?"disabled":""}>⚔️ Attack</button><button class=s onclick="turn('def')" ${B.busy?"disabled":""}>🛡️ Defend</button>${B.m.p.ab.map(i=>`<button onclick="turn('ab',${i})" ${B.m.cd[i]>0||B.busy?"disabled":""}>${AB[i].i} ${AB[i].n}${B.m.cd[i]>0?" ("+B.m.cd[i]+")":""}</button>`).join("")}<div class=mu>${B.m.p.ab.map(i=>AB[i].n+": "+AB[i].d).join(" · ")}</div>`}</div><div class="card log">${B.log.slice(-8).reverse().join("<br>")}</div>`}}
 if(tab=="arena"){if(!FB.on)h+=`<div class=card><b>🌐 Multiplayer</b><div class=mu>Turn on accounts (see SETUP.md) to unlock the arena.</div></div>`;
 else{if(!arenaOn){arenaOn=1;refresh()}h+=`<div class=card><b>Your arena pet</b><input id=nk placeholder="Nickname" maxlength=16 value="${esc(S.nick)}" onchange="S.nick=this.value;save()"><button onclick="S.nick=nk.value;save();pub()">Join / update</button><button class=s onclick="refresh()">Refresh</button><div class=mu>${esc(aMsg)}</div></div><h3>🏆 Leaderboard</h3>`+
 (ARENA.length?ARENA.map(a=>{const p=pet(Number(a.id)||0),me=a.uid==FB.user.uid;return `<div class="card row"><div><b>${esc(a.nick)}${me?" (you)":""}</b><div class=mu>${p.em} ${esc(p.name)} · ${R[p.r][0]} · ${Number(a.wins)||0} wins</div></div>${me?"":`<button onclick="fightP('${esc(a.uid)}')" ${S.act==null?"disabled":""}>Fight</button>`}</div>`}).join(""):`<div class=card>No players yet. Be the first!</div>`)}}
 if(tab=="shop"){const row=(k,L)=>L.map((it,i)=>{const own=S.items.includes(k+i),on=S.act!=null&&(S.gear[S.act]||{})[k]===i;return `<div class="card row"><div><b>${it.n}</b><div class=mu>${k=="ar"?"🛡️+"+it.d:"⚔️+"+it.a+(it.s?" ⚡+"+it.s:"")}</div></div>${own?`<button class=s onclick="eq('${k}',${i})">${on?"Unequip":"Equip"}</button>`:`<button onclick="buy('${k}',${i})">🪙${it.p}</button>`}</div>`}).join("");
 h+=`<h3>Armor</h3>${row("ar",ARM)}<h3>Accessories</h3>${row("ac",ACC)}<div class=mu>Gear equips on your active pet.</div>`}
 if(tab=="store")h+=`<div class=card><b>Buy pet codes</b><div class=mu>Pay, then the seller sends you your code(s). Enter them on the Redeem tab. Bundles save up to 30%.</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet code</b><div>${SIZES.map((n,j)=>`<button onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")+`<div class=card><div class=row><span class=mu>Tip the creator ☕</span><button class=s onclick="iap('tip')">Tip</button></div></div>`;
-document.getElementById("v").innerHTML=h}
+document.getElementById("v").innerHTML=h;if(tab=="pets")startHab()}
 const DEF=()=>({coins:100,seen:[],pets:[],items:[],gear:{},act:null,wins:0,nick:"",daily:0});
 async function scan(code){code=(code||"").trim().toUpperCase().replace(/\s+/g,"");if(!code)return;
 if(FB.on){msg="Checking…";render();const r=await FB.redeem(code);if(r==-2)msg="⚠️ Could not check the code. Try again.";else if(r<0)msg="❌ Invalid or already used code.";else{give(r,"🎉 You got ");return render()}return render()}
@@ -94,6 +97,33 @@ async function doAuth(m){const e=em.value.trim(),p=pw.value;msg="";try{await(m==
 function landing(){return (msg?`<div class=card>${msg}</div>`:"")+`<div class=card><h2>Collect pets. Battle friends. 🐾</h2><div class=mu>Over 1,000 pets, powerful abilities, armor, and a live arena leaderboard. Free to play.</div></div>
 <div class=card><b>Sign up free</b><input id=em type=email placeholder="Email" autocomplete=email><input id=pw type=password placeholder="Password (6+ characters)" autocomplete=current-password><button onclick="doAuth('up')">Sign up</button><button class=s onclick="doAuth('in')">Log in</button><div class=mu>You get a free starter pet and a new free pet every day.</div></div>
 <div class=card><b>Why play</b><div class=mu>⚔️ Turn-based battles with 6 abilities<br>🛡️ Armor and accessories to buy<br>🌐 Fight other players in the Arena<br>🎟️ Rare, Epic and Legendary pet codes</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet codes</b><div>${SIZES.map((n,j)=>`<button class=s onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function act(s,k,i){const a=B[s],t=s=="m"?"o":"m",e=B[t],who=s=="m"?"You":"Enemy";
+const hit=m=>{let d=Math.round(dm(a.p,e.p)*m);if(e.sh){d=Math.ceil(d/2);e.sh=0}e.hp-=d;B.fx[s]="atk";B.fx[t]="hit";B.pop[t]="-"+d;return d};
+const heal=h=>{a.hp=Math.min(a.max,a.hp+h);B.fx[s]="heal";B.pop[s]="+"+h};
+if(k=="atk"){const d=hit(1);B.log.push(`${who} hit for ${d}`)}
+else if(k=="def"){a.sh=1;B.fx[s]="buff";B.log.push(`${who} braced for impact`)}
+else{const n=AB[i];a.cd[i]=4;let x=`${who} used ${n.i} ${n.n}`;
+if(i==0)x+=` for ${hit(1.8)}`;
+if(i==1){const h=Math.round(a.max*.3);heal(h);x+=` +${h} HP`}
+if(i==2){e.stun=1;B.fx[s]="atk";B.fx[t]="stun"}
+if(i==3){a.sh=1;B.fx[s]="buff"}
+if(i==4){e.psn=3;B.fx[s]="atk";B.fx[t]="stun"}
+if(i==5){const d=hit(1),h=Math.round(d/2);heal(h);B.fx[s]="atk";x+=` for ${d}, +${h} HP`}
+B.log.push(x)}}
+async function turn(k,i){if(!B||B.over||B.busy)return;B.busy=1;const m=B.m,o=B.o;B.fx={};B.pop={};
+if(m.stun){m.stun=0;B.log.push("You are stunned!")}else act("m",k,i);
+render();await sleep(800);if(!B)return;
+if(o.hp>0){B.fx={};B.pop={};if(o.stun){o.stun=0;B.log.push("Enemy is stunned!")}else{const av=o.p.ab.filter(x=>!(o.cd[x]>0));if(av.length&&Math.random()<.35)act("o","ab",av[Math.floor(Math.random()*av.length)]);else act("o",Math.random()<.15?"def":"atk")}render();await sleep(800);if(!B)return}
+B.fx={};B.pop={};
+for(const u of [m,o]){if(u.psn>0){u.psn--;u.hp-=5;B.log.push(`${u===m?"You take":"Enemy takes"} 5 poison`)}for(const x in u.cd)if(u.cd[x]>0)u.cd[x]--}
+if(m.hp<=0||o.hp<=0)end();B.busy=0;render()}
+function stage(){const f=B.fx||{},p=B.pop||{};const fig=(u,s)=>`<div class="fig ${s} ${f[s]||""} ${u.hp<=0?"ko":""}"><span class=pop>${p[s]||""}</span><div class=sp>${u.p.em}</div></div>`;return `<div class=stage>${fig(B.m,"m")}${fig(B.o,"o")}</div>`}
+function habitat(){const ids=[...new Set(S.pets)].slice(0,24);return `<div class=hab id=hab>${ids.map(i=>`<div class="wp${S.act==i?" act":""}" onclick="setAct(${i})"><div class=fl><div class=sp2>${pet(i).em}</div></div></div>`).join("")}</div><div class=mu style="margin-bottom:8px">Tap a pet to make it your active fighter.</div>`}
+let habT=0;function startHab(){const h=document.getElementById("hab");if(!h)return;const W=Math.max(60,h.clientWidth),H=Math.max(60,h.clientHeight),my=++habT;
+const ws=[...h.children].map(el=>{const x=Math.random()*(W-48),y=Math.random()*(H-48);return{el,x,y,tx:x,ty:y,w:Math.random()*60,s:.4+Math.random()*.5,f:1}});
+const step=()=>{if(my!=habT||!document.body.contains(h))return;for(const o of ws){if(o.w>0)o.w--;else{const dx=o.tx-o.x,dy=o.ty-o.y,d=Math.hypot(dx,dy);if(d<2){o.w=40+Math.random()*120;o.tx=Math.random()*(W-48);o.ty=Math.random()*(H-48)}else{o.x+=dx/d*o.s;o.y+=dy/d*o.s;if(Math.abs(dx)>1)o.f=dx<0?-1:1}}
+o.el.style.transform=`translate(${o.x}px,${o.y}px)`;o.el.firstChild.style.transform=`scaleX(${o.f})`}requestAnimationFrame(step)};step()}
 setTimeout(()=>{if(!window.FB)document.getElementById("v").innerHTML='<div class="card">⚠️ Could not load. Open this from your website link (not from the Files app), and check your internet.</div>'},5000);
 </script>
 <script type="module">

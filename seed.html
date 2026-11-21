@@ -1,0 +1,18 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Upload codes (owner only)</title>
+<style>body{font:16px system-ui;max-width:520px;margin:20px auto;padding:0 12px}input,textarea,button{width:100%;padding:10px;margin:6px 0;font:inherit;box-sizing:border-box}</style></head><body>
+<h2>Upload sale codes</h2><p>Sign in with YOUR owner account, paste your sale-codes.txt, then upload. Keep this page private.</p>
+<input id="em" placeholder="Owner email"><input id="pw" type="password" placeholder="Password"><textarea id="tx" rows="8" placeholder="Paste sale-codes.txt here"></textarea>
+<button id="go">Sign in and upload</button><pre id="out"></pre>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,signInWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,doc,setDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// PASTE THE SAME FIREBASE CONFIG AS index.html
+const CFG={apiKey:"AIzaSyAk4WAdnh3gh0AwclWhoXKfziweiZDK-70",authDomain:"qr-pets-380f0.firebaseapp.com",projectId:"qr-pets-380f0",appId:"1:352724724489:web:221a5d31b3df23e4cec1d8"};
+const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,"0")).join("");
+go.onclick=async()=>{try{const app=initializeApp(CFG),au=getAuth(app),db=getFirestore(app);await signInWithEmailAndPassword(au,em.value.trim(),pw.value);
+const codes=[...new Set(tx.value.toUpperCase().match(/QRP-[A-Z0-9]{8}/g)||[])];let n=0;
+for(const c of codes){await setDoc(doc(db,"codes",await sha(c)),{pet:hash(c)%1000});out.textContent="Uploaded "+(++n)+" / "+codes.length}
+out.textContent+="\nDone. Codes are live.";}catch(e){out.textContent="Error: "+(e.message||e)}};
+</script></body></html>

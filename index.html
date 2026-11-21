@@ -32,6 +32,22 @@ nav button{flex:1;background:none;color:var(--mu);border-radius:0;padding:10px 0
 .wp{position:absolute;left:0;top:0;width:48px;height:48px;cursor:pointer}.sp2{font-size:36px;line-height:48px;text-align:center;animation:bob .9s ease-in-out infinite}
 .wp.act .fl{filter:drop-shadow(0 0 6px gold) drop-shadow(0 0 2px gold)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+@keyframes tw{0%,100%{transform:scale(.6);opacity:.6}50%{transform:scale(1.2);opacity:1}}
+.ar .eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}.ar .tw{transform-box:fill-box;transform-origin:center;animation:tw 1.6s ease-in-out infinite}
+.em{width:64px;height:64px;flex:none;font-size:0}.fig .sp{display:flex;justify-content:center;line-height:0;font-size:0}.sp2{display:flex;justify-content:center;align-items:center;height:48px;font-size:0}
+.bf{position:relative;height:min(50vh,380px);border-radius:14px;overflow:hidden;background:linear-gradient(#bfe9ff,#9be37d 45%,#6cc35a);border:1px solid var(--ln);touch-action:none}
+.ent{position:absolute;left:0;top:0;will-change:transform}.ent svg{animation:bob .8s ease-in-out infinite}.ent .fl{line-height:0;font-size:0}
+.hud{position:absolute;left:8px;right:8px;top:6px;font:700 14px system-ui;color:#143;text-shadow:0 1px 0 #fff8;z-index:5}.hb{height:9px;background:#0003;border-radius:9px;overflow:hidden;margin-top:4px}.hb i{display:block;height:100%;width:100%;background:#2fa86a}
+.shot{position:absolute;border-radius:50%;will-change:transform}
+.fx{position:absolute;border:4px solid;border-radius:50%;animation:rg .5s forwards;pointer-events:none}@keyframes rg{from{transform:scale(.2);opacity:1}to{transform:scale(1);opacity:0}}
+.fpop{position:absolute;font-weight:800;font-size:16px;animation:up .8s forwards;pointer-events:none;z-index:6;text-shadow:0 1px 2px #0008;white-space:nowrap}
+.ctl{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+.joy{width:130px;height:130px;border-radius:50%;background:var(--cd);border:3px solid var(--ln);position:relative;touch-action:none;flex:none}
+.knob{position:absolute;left:35px;top:35px;width:60px;height:60px;border-radius:50%;background:var(--ac);box-shadow:0 2px 8px #0006;pointer-events:none}
+.abs{display:flex;gap:12px}.abtn{width:76px;height:76px;border-radius:50%;font-size:32px;padding:0;position:relative;margin:0}.abtn span{position:absolute;right:8px;bottom:4px;font-size:14px}
+.abtn,.joy{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+nav{overflow-x:auto}nav button{flex:0 0 auto;min-width:68px;padding:10px 8px}
 </style></head><body>
 <div class="top"><h2>🐾 QR Pets</h2><div class="coin">🪙 <span id="co"></span> <span id="ut"></span></div></div>
 <div id="v"><div class="card">Loading…</div></div><nav id="nv"></nav>
@@ -53,12 +69,12 @@ try{const x=JSON.parse(localStorage.getItem("qrp")||"null");if(x)S={...S,...x}}c
 const save=()=>{try{localStorage.setItem("qrp",JSON.stringify(S))}catch(e){}if(window.FB&&FB.on&&FB.user)FB.save(S)};
 const effG=(p,g)=>{g=g||{};const ar=ARM[g.ar]||{d:0},ac=ACC[g.ac]||{a:0,s:0};return{...p,a:p.a+ac.a,d:p.d+ar.d,s:p.s+ac.s}};
 const eff=p=>effG(p,S.gear[p.id]);
-function give(id,pre){S.pets.push(id);if(S.act==null)S.act=id;const p=pet(id);msg=`${pre}${p.em} ${p.name} (#${id}) — ${R[p.r][0]}!`;save()}
+function give(id,pre){S.pets.push(id);if(S.act==null)S.act=id;const p=pet(id);msg=`${pre}${art(id,56,1)} ${p.name} (#${id}) — ${R[p.r][0]}!`;save()}
 function daily(){const w=20*36e5-(Date.now()-(S.daily||0));if(w>0){msg=`⏳ Next free pet in about ${Math.ceil(w/36e5)}h`;return render()}
 let id,n=0;do{id=Math.floor(Math.random()*600)}while(S.pets.includes(id)&&++n<50);give(id,"🎁 Free daily pet: ");S.daily=Date.now();save();render()}
 const dm=(x,y)=>Math.max(1,Math.round(x.a*(x.t==(y.t+2)%3?1.3:x.t==(y.t+1)%3?.8:1)-y.d/2+Math.random()*4));
 const mk=p=>({p,hp:p.hp,max:p.hp,sh:0,stun:0,psn:0,cd:{}});
-function start(op,pvp){const me=eff(pet(S.act));B={m:mk(me),o:mk(op),log:[`${me.em} ${me.name} vs ${op.em} ${op.name}`],over:0,pvp,fx:{},pop:{}};tab="fight";render()}
+function start(op,pvp){const me=eff(pet(S.act));B={m:mk(me),o:mk(op),log:[`${me.name} vs ${op.name}`],over:0,pvp,fx:{},pop:{}};tab="fight";render()}
 function pve(){const me=pet(S.act),mr=Math.min(4,me.r+(Math.random()<.3?1:0));let id;do{id=Math.floor(Math.random()*1000)}while(rar(id)>mr);const sc=.8+Math.random()*.3,o=pet(id);start({...o,hp:Math.round(o.hp*sc),a:Math.round(o.a*sc)},0)}
 function end(){B.over=1;const w=B.o.hp<=0&&B.m.hp>0,g=w?(B.pvp?30:10)+B.o.p.r*15+Math.floor(Math.random()*10):2;S.coins+=g;if(w&&B.pvp)S.wins++;
 B.log.push(w?`<span class=win>🏆 Victory! +${g} coins</span>`:`<span class=lose>💀 Defeat. +${g} coins</span>`);save();if(w&&B.pvp)pub()}
@@ -67,19 +83,19 @@ function buy(k,i){const it=(k=="ar"?ARM:ACC)[i];if(S.coins<it.p){msg="Not enough
 function eq(k,i){if(S.act==null)return;const g=S.gear[S.act]||(S.gear[S.act]={});g[k]=g[k]===i?undefined:i;save();render()}
 function setAct(i){S.act=i;save();render()}
 function iap(k){const u=LINKS[k];if(!u){alert("Coming soon!");return}window.open(u,"_blank")}
-function card(p,x){return `<div class=pet><div class=em>${p.em}</div><div style="flex:1"><b>${esc(p.name)}</b> <span class=tag style="background:${R[p.r][1]}">${R[p.r][0]}</span><div class=mu>#${p.id} · ${TY[p.t]}</div><div class=mu>❤️${x.hp} ⚔️${x.a} 🛡️${x.d} ⚡${x.s}</div><div class=mu>${p.ab.map(i=>AB[i].i+AB[i].n).join(" · ")}</div></div></div>`}
-const bar=(u,n)=>`<div class=row><b>${u.p.em} ${esc(u.p.name)}</b><span class=mu>${Math.max(0,u.hp)}/${u.max}${u.sh?" 🛡️":""}${u.stun?" ⚡":""}${u.psn?" ☠️":""}</span></div><div class=bar><i style="width:${Math.max(0,u.hp)/u.max*100}%"></i></div>`;
+function card(p,x){return `<div class=pet><div class=em>${art(p.id,64)}</div><div style="flex:1"><b>${esc(p.name)}</b> <span class=tag style="background:${R[p.r][1]}">${R[p.r][0]}</span><div class=mu>#${p.id} · ${TY[p.t]}</div><div class=mu>❤️${x.hp} ⚔️${x.a} 🛡️${x.d} ⚡${x.s}</div><div class=mu>${p.ab.map(i=>AB[i].i+AB[i].n).join(" · ")}</div></div></div>`}
+const bar=(u,n)=>`<div class=row><b>${art(u.p.id,22)} ${esc(u.p.name)}</b><span class=mu>${Math.max(0,u.hp)}/${u.max}${u.sh?" 🛡️":""}${u.stun?" ⚡":""}${u.psn?" ☠️":""}</span></div><div class=bar><i style="width:${Math.max(0,u.hp)/u.max*100}%"></i></div>`;
 function render(){if(!window.FB){v.innerHTML="Loading…";return}document.getElementById("co").textContent=S.coins;document.getElementById("ut").innerHTML=FB.on&&FB.user?`<button class=s onclick="FB.out()">Log out</button>`:"";if(FB.on&&!FB.user){nv.innerHTML="";v.innerHTML=landing();return}
-const T={scan:"🎟️ Redeem",pets:"🐾 Pets",fight:"⚔️ Fight",arena:"🌐 Arena",shop:"🛒 Shop",store:"💵 Store"};
+const T={scan:"🎟️ Redeem",pets:"🐾 Pets",fight:"⚔️ Fight",brawl:"🕹️ Brawl",arena:"🌐 Arena",shop:"🛒 Shop",store:"💵 Store"};
 nv.innerHTML=Object.keys(T).map(k=>`<button class="${k==tab?"on":""}" onclick="tab='${k}';msg='';render()">${T[k]}</button>`).join("");
-let h=msg?`<div class=card>${msg}</div>`:"";
+if(tab=="brawl"&&G&&G.run)return;let h=msg?`<div class=card>${msg}</div>`:"";
 if(tab=="scan")h+=`<div class=card><b>Enter a code</b><div class=mu>Each code works once and gives you a pet. Buy codes in the Store tab.</div><input id=ci placeholder="QRP-XXXXXXXX" autocapitalize=characters><button onclick="scan(ci.value)">Redeem</button></div><div class=card><b>🎁 Free daily pet</b><div class=mu>Come back every day for a free pet.</div><button class=s onclick="daily()">Claim</button></div><div class=mu>Collected: ${new Set(S.pets).size}/1000 · Wins: ${S.wins}</div>`;
 if(tab=="pets")h+=habitat()+[...new Set(S.pets)].map(pet).map(p=>`<div class=card>${card(p,eff(p))}<div class=row><span class=mu>${S.gear[p.id]?`${(ARM[S.gear[p.id].ar]||{}).n||""} ${(ACC[S.gear[p.id].ac]||{}).n||""}`:"No gear"}</span><button class="${S.act==p.id?"":"s"}" onclick="setAct(${p.id})">${S.act==p.id?"Active":"Set active"}</button></div></div>`).join("");
-if(tab=="fight"){if(!B)h+=`<div class=card>${card(pet(S.act),eff(pet(S.act)))}<button onclick="pve()">Find opponent</button><div class=mu>Win coins, then buy gear in the Shop. Use abilities (they recharge) to win.</div></div>`;
+if(tab=="brawl")h+=brawlStart();if(tab=="fight"){if(!B)h+=`<div class=card>${card(pet(S.act),eff(pet(S.act)))}<button onclick="pve()">Find opponent</button><div class=mu>Win coins, then buy gear in the Shop. Use abilities (they recharge) to win.</div></div>`;
 else{h+=`<div class=card>${stage()}${bar(B.m)}${bar(B.o)}${B.over?`<button onclick="B=null;render()">Back</button><button class=s onclick="${B.pvp?"tab='arena';B=null;render()":"pve()"}">${B.pvp?"Arena":"Fight again"}</button>`:`<button onclick="turn('atk')" ${B.busy?"disabled":""}>⚔️ Attack</button><button class=s onclick="turn('def')" ${B.busy?"disabled":""}>🛡️ Defend</button>${B.m.p.ab.map(i=>`<button onclick="turn('ab',${i})" ${B.m.cd[i]>0||B.busy?"disabled":""}>${AB[i].i} ${AB[i].n}${B.m.cd[i]>0?" ("+B.m.cd[i]+")":""}</button>`).join("")}<div class=mu>${B.m.p.ab.map(i=>AB[i].n+": "+AB[i].d).join(" · ")}</div>`}</div><div class="card log">${B.log.slice(-8).reverse().join("<br>")}</div>`}}
 if(tab=="arena"){if(!FB.on)h+=`<div class=card><b>🌐 Multiplayer</b><div class=mu>Turn on accounts (see SETUP.md) to unlock the arena.</div></div>`;
 else{if(!arenaOn){arenaOn=1;refresh()}h+=`<div class=card><b>Your arena pet</b><input id=nk placeholder="Nickname" maxlength=16 value="${esc(S.nick)}" onchange="S.nick=this.value;save()"><button onclick="S.nick=nk.value;save();pub()">Join / update</button><button class=s onclick="refresh()">Refresh</button><div class=mu>${esc(aMsg)}</div></div><h3>🏆 Leaderboard</h3>`+
-(ARENA.length?ARENA.map(a=>{const p=pet(Number(a.id)||0),me=a.uid==FB.user.uid;return `<div class="card row"><div><b>${esc(a.nick)}${me?" (you)":""}</b><div class=mu>${p.em} ${esc(p.name)} · ${R[p.r][0]} · ${Number(a.wins)||0} wins</div></div>${me?"":`<button onclick="fightP('${esc(a.uid)}')" ${S.act==null?"disabled":""}>Fight</button>`}</div>`}).join(""):`<div class=card>No players yet. Be the first!</div>`)}}
+(ARENA.length?ARENA.map(a=>{const p=pet(Number(a.id)||0),me=a.uid==FB.user.uid;return `<div class="card row"><div><b>${esc(a.nick)}${me?" (you)":""}</b><div class=mu>${art(p.id,22)} ${esc(p.name)} · ${R[p.r][0]} · ${Number(a.wins)||0} wins</div></div>${me?"":`<button onclick="fightP('${esc(a.uid)}')" ${S.act==null?"disabled":""}>Fight</button>`}</div>`}).join(""):`<div class=card>No players yet. Be the first!</div>`)}}
 if(tab=="shop"){const row=(k,L)=>L.map((it,i)=>{const own=S.items.includes(k+i),on=S.act!=null&&(S.gear[S.act]||{})[k]===i;return `<div class="card row"><div><b>${it.n}</b><div class=mu>${k=="ar"?"🛡️+"+it.d:"⚔️+"+it.a+(it.s?" ⚡+"+it.s:"")}</div></div>${own?`<button class=s onclick="eq('${k}',${i})">${on?"Unequip":"Equip"}</button>`:`<button onclick="buy('${k}',${i})">🪙${it.p}</button>`}</div>`}).join("");
 h+=`<h3>Armor</h3>${row("ar",ARM)}<h3>Accessories</h3>${row("ac",ACC)}<div class=mu>Gear equips on your active pet.</div>`}
 if(tab=="store")h+=`<div class=card><b>Buy pet codes</b><div class=mu>Pay, then the seller sends you your code(s). Enter them on the Redeem tab. Bundles save up to 30%.</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet code</b><div>${SIZES.map((n,j)=>`<button onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")+`<div class=card><div class=row><span class=mu>Tip the creator ☕</span><button class=s onclick="iap('tip')">Tip</button></div></div>`;
@@ -118,12 +134,106 @@ if(o.hp>0){B.fx={};B.pop={};if(o.stun){o.stun=0;B.log.push("Enemy is stunned!")}
 B.fx={};B.pop={};
 for(const u of [m,o]){if(u.psn>0){u.psn--;u.hp-=5;B.log.push(`${u===m?"You take":"Enemy takes"} 5 poison`)}for(const x in u.cd)if(u.cd[x]>0)u.cd[x]--}
 if(m.hp<=0||o.hp<=0)end();B.busy=0;render()}
-function stage(){const f=B.fx||{},p=B.pop||{};const fig=(u,s)=>`<div class="fig ${s} ${f[s]||""} ${u.hp<=0?"ko":""}"><span class=pop>${p[s]||""}</span><div class=sp>${u.p.em}</div></div>`;return `<div class=stage>${fig(B.m,"m")}${fig(B.o,"o")}</div>`}
-function habitat(){const ids=[...new Set(S.pets)].slice(0,24);return `<div class=hab id=hab>${ids.map(i=>`<div class="wp${S.act==i?" act":""}" onclick="setAct(${i})"><div class=fl><div class=sp2>${pet(i).em}</div></div></div>`).join("")}</div><div class=mu style="margin-bottom:8px">Tap a pet to make it your active fighter.</div>`}
+function stage(){const f=B.fx||{},p=B.pop||{};const fig=(u,s)=>`<div class="fig ${s} ${f[s]||""} ${u.hp<=0?"ko":""}"><span class=pop>${p[s]||""}</span><div class=sp>${art(u.p.id,100)}</div></div>`;return `<div class=stage>${fig(B.m,"m")}${fig(B.o,"o")}</div>`}
+function habitat(){const ids=[...new Set(S.pets)].slice(0,24);return `<div class=hab id=hab>${ids.map(i=>`<div class="wp${S.act==i?" act":""}" onclick="setAct(${i})"><div class=fl><div class=sp2>${art(i,44)}</div></div></div>`).join("")}</div><div class=mu style="margin-bottom:8px">Tap a pet to make it your active fighter.</div>`}
 let habT=0;function startHab(){const h=document.getElementById("hab");if(!h)return;const W=Math.max(60,h.clientWidth),H=Math.max(60,h.clientHeight),my=++habT;
 const ws=[...h.children].map(el=>{const x=Math.random()*(W-48),y=Math.random()*(H-48);return{el,x,y,tx:x,ty:y,w:Math.random()*60,s:.4+Math.random()*.5,f:1}});
 const step=()=>{if(my!=habT||!document.body.contains(h))return;for(const o of ws){if(o.w>0)o.w--;else{const dx=o.tx-o.x,dy=o.ty-o.y,d=Math.hypot(dx,dy);if(d<2){o.w=40+Math.random()*120;o.tx=Math.random()*(W-48);o.ty=Math.random()*(H-48)}else{o.x+=dx/d*o.s;o.y+=dy/d*o.s;if(Math.abs(dx)>1)o.f=dx<0?-1:1}}
 o.el.style.transform=`translate(${o.x}px,${o.y}px)`;o.el.firstChild.style.transform=`scaleX(${o.f})`}requestAnimationFrame(step)};step()}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function art(id,px,inl){const r=rng(id*7919+13),p=pet(id),sp=Math.floor(id/10)%10,h=Math.round([15,205,110][id%3]+r()*40-10),H2=(h+50)%360;
+const c1=`hsl(${h},68%,58%)`,c2=`hsl(${h},75%,82%)`,dk=`hsl(${h},55%,22%)`,ac=`hsl(${H2},75%,62%)`,sd=`hsl(${h},62%,46%)`;
+const K=`stroke="${dk}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"`;
+const F=(d,f)=>`<path d="${d}" fill="${f}" ${K}/>`,L=d=>`<path d="${d}" fill="none" ${K}/>`;
+const E=(x,y,a,b,f,rot)=>`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${b}" fill="${f}" ${K}${rot?` transform="rotate(${rot} ${x} ${y})"`:""}/>`;
+const C=(x,y,q,f)=>`<circle cx="${x}" cy="${y}" r="${q}" fill="${f}" ${K}/>`;
+const both=s=>s+`<g transform="translate(100 0) scale(-1 1)">${s}</g>`;
+const st=(x,y,c)=>`<path class="tw" d="M${x} ${y-4.5}L${x+1.3} ${y-1.3}L${x+4.5} ${y}L${x+1.3} ${y+1.3}L${x} ${y+4.5}L${x-1.3} ${y+1.3}L${x-4.5} ${y}L${x-1.3} ${y-1.3}Z" fill="${c}"/>`;
+let bk="",ft="",rx=30+r()*4,ry=26+r()*4,cy=62,feet=1;
+switch(sp){
+case 0:bk=both(F("M26 44L28 12L47 36Z",c1)+F("M31 38L30 21L41 34Z",ac))+F("M76 74Q100 66 94 40Q88 58 72 62Z",c1)+C(93,41,4,c2);break;
+case 1:bk=both(F("M34 40L26 14L46 34Z",c2)+F("M24 58L5 44L10 62L4 74L24 72Z",ac))+F("M76 76L98 82L78 86Z",sd);break;
+case 2:bk=both(F("M30 42L24 20L44 34Z",c1)+E(19,64,8,14,ac,-15));ft=F("M45 62L55 62L50 71Z","#f2b01e");rx=29;ry=31;cy=60;break;
+case 3:rx=35;ry=22;cy=66;feet=0;ft=both(C(30,91,4,c1));break;
+case 4:bk=both(C(27,40,11,c1)+C(27,40,5.5,ac));ft=E(50,69,12,9,c2)+E(50,65,3.5,2.5,dk);break;
+case 5:bk=both(F("M26 52L8 44L19 60Z",ac)+F("M25 66L6 66L21 74Z",ac))+F("M76 78Q99 82 95 58Q90 72 74 70Z",c1);break;
+case 6:bk=both(F("M25 46L27 10L47 38Z",c1)+F("M30 40L29 20L41 36Z",ac))+F("M76 74Q98 68 94 44Q84 60 72 62Z",c1);ft=E(50,69,13,9,c2)+E(50,65,4,3,dk);break;
+case 7:bk=both(E(17,50,15,22,ac,-20)+C(15,46,4,c2)+C(19,58,3,c2)+L("M42 38Q34 24 30 12")+C(30,11,3.5,ac));break;
+case 8:rx=34;ry=22;cy=64;feet=0;bk=both(L("M20 60L12 52")+F("M12 60Q3 50 8 40Q12 47 19 47Q18 53 12 60Z",ac)+L("M32 80L24 90M42 84L38 93")+L("M42 44L40 28"));ft=both(C(40,25,5,"#fff")+C(40,26,2.2,dk));break;
+case 9:bk=both(E(37,22,9,22,c1,-8)+E(37,24,4,15,ac,-8))+C(80,78,8,c2);break;}
+if(feet)bk+=both(E(37,cy+ry-1,8,4.5,sd));
+const v=Math.floor(r()*3),mk=Math.floor(r()*3),es=Math.floor(r()*4),ms=Math.floor(r()*3),ey=cy-4,my=cy+(sp==4||sp==6?10:7);
+const body=v==1&&sp!=2&&sp!=3&&sp!=8?`<rect x="${50-rx}" y="${cy-ry}" width="${2*rx}" height="${2*ry}" rx="20" fill="${c1}" ${K}/>`:E(50,cy,rx,ry,c1);
+const belly=`<ellipse cx="50" cy="${cy+9}" rx="${rx*.55}" ry="${ry*.5}" fill="${c2}" opacity=".85"/>`;
+let mark=mk==1?`<circle cx="36" cy="${cy-14}" r="3.5" fill="${sd}"/><circle cx="62" cy="${cy-18}" r="4" fill="${sd}"/><circle cx="68" cy="${cy-8}" r="2.5" fill="${sd}"/>`:mk==2?`<path d="M44 ${cy-ry+3}v8M50 ${cy-ry+2}v10M56 ${cy-ry+3}v8" stroke="${sd}" stroke-width="3" stroke-linecap="round"/>`:"";
+if(sp==3)mark+=`<ellipse cx="36" cy="${cy-10}" rx="7" ry="3.5" fill="#fff" opacity=".55" transform="rotate(-25 36 ${cy-10})"/>`;
+const hl=(x,y,q)=>`<circle cx="${x}" cy="${y}" r="${q}" fill="#fff"/>`,P=(a,b)=>`stroke="${dk}" stroke-width="3" stroke-linecap="round" fill="none" d="${a}${b}"`;
+let eyes=sp==2?C(38,ey,9,"#fff")+C(62,ey,9,"#fff")+`<circle cx="38" cy="${ey}" r="4" fill="${dk}"/><circle cx="62" cy="${ey}" r="4" fill="${dk}"/>`+hl(39.5,ey-1.5,1.4)+hl(63.5,ey-1.5,1.4)
+:es==0?`<circle cx="40" cy="${ey}" r="4.6" fill="${dk}"/><circle cx="60" cy="${ey}" r="4.6" fill="${dk}"/>`+hl(41.6,ey-1.8,1.6)+hl(61.6,ey-1.8,1.6)
+:es==1?`<path ${P("M35 "+(ey+1)+"Q40 "+(ey-6)+" 45 "+(ey+1),"M55 "+(ey+1)+"Q60 "+(ey-6)+" 65 "+(ey+1))}/>`
+:es==2?C(40,ey,6.5,"#fff")+C(60,ey,6.5,"#fff")+`<circle cx="41" cy="${ey}" r="3.6" fill="${dk}"/><circle cx="61" cy="${ey}" r="3.6" fill="${dk}"/>`+hl(42.4,ey-1.6,1.3)+hl(62.4,ey-1.6,1.3)
+:`<path ${P("M35 "+ey+"H45","M55 "+ey+"H65")}/>`;
+const mouth=sp==2?"":ms==0?`<path d="M44 ${my}Q50 ${my+6} 56 ${my}" fill="none" stroke="${dk}" stroke-width="2.6" stroke-linecap="round"/>`:ms==1?`<path d="M44 ${my}Q50 ${my+11} 56 ${my}Z" fill="#7a2030" ${K}/>`:`<path d="M43 ${my}Q46.5 ${my+5} 50 ${my}Q53.5 ${my+5} 57 ${my}" fill="none" stroke="${dk}" stroke-width="2.6" stroke-linecap="round"/>`;
+const cheeks=`<circle cx="30" cy="${ey+8}" r="4" fill="#ff7a9c" opacity=".45"/><circle cx="70" cy="${ey+8}" r="4" fill="#ff7a9c" opacity=".45"/>`;
+let x="";const q=p.r;
+if(q==1)x=F("M68 37L60 31L60 43Z","#ff5c8a")+F("M68 37L76 31L76 43Z","#ff5c8a")+C(68,37,3,"#ff9db8");
+if(q==2)x=F("M50 36L55 42L50 48L45 42Z","#4aa8ff");
+if(q==3)x=`<ellipse cx="50" cy="11" rx="15" ry="4.5" fill="none" stroke="#d58bff" stroke-width="3.5"/>`+st(14,22,"#d58bff")+st(88,30,"#d58bff");
+if(q==4)x=F("M35 40L37 25L44 33L50 21L56 33L63 25L65 40Z","#ffd23f")+st(12,20,"#ffd23f")+st(90,26,"#ffd23f")+st(84,92,"#ffd23f");
+const sty=px<30||inl?"display:inline-block;vertical-align:middle":"display:block";
+return `<svg class="ar" viewBox="0 0 100 100" width="${px}" height="${px}" style="${sty}${q>=2?`;filter:drop-shadow(0 0 ${q*2}px ${R[q][1]})`:""}">${bk}${body}${belly}${mark}<g class="eyes" style="animation-delay:-${id%5}s">${eyes}</g>${mouth}${cheeks}${ft}${x}</svg>`}
+let G=null;const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),TCOL=["#ff6a3d","#3da8ff","#5bd65b"],CD=[5,8,7,9,7,5];
+const gd=e=>Math.hypot(e.x-G.x,e.y-G.y);
+function near(r){let b=null,bd=r;for(const e of G.en){if(e.dead)continue;const d=gd(e);if(d<bd){bd=d;b=e}}return b}
+function mkEnt(id,px){const d=document.createElement("div");d.className="ent";d.style.width=d.style.height=px+"px";d.innerHTML=`<div class=fl>${art(id,px)}</div>`;G.bf.appendChild(d);return d}
+function fxEl(cls,x,y,w,css,ms){const d=document.createElement("div");d.className=cls;d.style.left=x+"px";d.style.top=y+"px";if(w)d.style.width=d.style.height=w+"px";if(css)d.style.cssText+=css;G.bf.appendChild(d);setTimeout(()=>d.remove(),ms);return d}
+const ring=(x,y,r,c)=>fxEl("fx",x-r,y-r,r*2,`border-color:${c}`,500);
+const pop=(x,y,t,c)=>{const d=fxEl("fpop",x,y,0,`color:${c}`,800);d.textContent=t};
+function brawlStart(){const l=G&&G.last;return `<div class=card>${S.act==null?"Get a pet first.":card(pet(S.act),eff(pet(S.act)))}<div class=mu>Drag the joystick to move. Your pet shoots the nearest enemy by itself. Tap ability buttons to survive. Every kill earns coins!<br>Best wave: ${S.best||0}</div>${l?`<div class=win>Last run: wave ${l.wave} · ${l.kills} kills · +${l.coins} coins</div>`:""}<button onclick="brawl()" ${S.act==null?"disabled":""}>▶ Start</button></div>`}
+function brawl(){const me=eff(pet(S.act));msg="";
+v.innerHTML=`<div class=bf id=bf></div><div class=ctl><div class=joy id=joy><div class=knob id=knob></div></div><div class=abs>${me.ab.map(i=>`<button class=abtn id="ab${i}">${AB[i].i}<span></span></button>`).join("")}</div></div>`;
+const bf=document.getElementById("bf"),W=bf.clientWidth||340,H=bf.clientHeight||340;
+G={run:1,me,hp:me.hp,max:me.hp,x:W/2,y:H/2,face:1,en:[],sh:[],wave:0,kills:0,coins:0,inv:0,hurt:0,atk:0,cd:{},jx:0,jy:0,keys:{},W,H,bf,last:G&&G.last,lt:0,wait:0};
+G.hud=document.createElement("div");G.hud.className="hud";G.hud.innerHTML=`<span id=ht></span><div class=hb><i id=hf></i></div>`;bf.appendChild(G.hud);
+G.pl=mkEnt(me.id,56);
+for(const i of me.ab)document.getElementById("ab"+i).addEventListener("pointerdown",e=>{e.preventDefault();useAb(i)});
+const joy=document.getElementById("joy"),knob=document.getElementById("knob");let pid=null;
+const mv=e=>{const r=joy.getBoundingClientRect(),R=r.width/2;let dx=e.clientX-(r.left+R),dy=e.clientY-(r.top+R);const m=Math.hypot(dx,dy);if(m>R){dx=dx/m*R;dy=dy/m*R}G.jx=dx/R;G.jy=dy/R;knob.style.transform=`translate(${dx}px,${dy}px)`};
+joy.addEventListener("pointerdown",e=>{e.preventDefault();pid=e.pointerId;try{joy.setPointerCapture(pid)}catch(x){}mv(e)});
+joy.addEventListener("pointermove",e=>{if(e.pointerId==pid)mv(e)});
+const up=e=>{if(e.pointerId==pid){pid=null;G.jx=G.jy=0;knob.style.transform=""}};joy.addEventListener("pointerup",up);joy.addEventListener("pointercancel",up);
+requestAnimationFrame(loop)}
+function spawn(){G.wave++;const n=Math.min(2+G.wave,12);for(let k=0;k<n;k++){const s=Math.floor(Math.random()*4),x=s==0?-20:s==1?G.W+20:Math.random()*G.W,y=s==2?-20:s==3?G.H+20:Math.random()*G.H,id=Math.floor(Math.random()*(G.wave>4?850:600)),hp=28+G.wave*12;G.en.push({id,x,y,hp,sp:48+G.wave*3+Math.random()*18,st:0,ps:0,atk:.5,fl:1,r:rar(id),el:mkEnt(id,46)})}}
+function shoot(tx,ty,dmg,rad,col,big){const g=G,dx=tx-g.x,dy=ty-g.y,d=Math.hypot(dx,dy)||1,el=fxEl("shot",0,0,rad*2,`background:${col};box-shadow:0 0 ${rad}px ${col}`,1400);g.sh.push({x:g.x,y:g.y,vx:dx/d*(big?340:430),vy:dy/d*(big?340:430),dmg,r:rad,el,life:1.3})}
+function hitE(e,d){d=Math.round(d*(.9+Math.random()*.2));e.hp-=d;pop(e.x,e.y-26,"-"+d,"#e04a4a");e.el.style.filter="brightness(2)";setTimeout(()=>{e.el.style.filter=""},90);if(e.hp<=0)killE(e)}
+function killE(e){if(e.dead)return;e.dead=1;e.el.remove();const g=G,c=2+e.r+Math.floor(g.wave/3);g.kills++;g.coins+=c;S.coins+=c;pop(e.x,e.y-20,"+"+c+"🪙","#d99a10");if(!g.en.some(x=>!x.dead))g.wait=1.5}
+function useAb(i){const g=G;if(!g||!g.run||g.cd[i]>0)return;g.cd[i]=CD[i];const me=g.me;
+if(i==0){const t=near(420);shoot(t?t.x:g.x+g.face*100,t?t.y:g.y,me.a*2.4,16,"#ff4d2e",1)}
+if(i==1){const h=Math.round(g.max*.35);g.hp=Math.min(g.max,g.hp+h);pop(g.x,g.y-50,"+"+h,"#2fa86a");ring(g.x,g.y,90,"#2fa86a")}
+if(i==2){ring(g.x,g.y,170,"#e0c020");for(const e of g.en)if(gd(e)<170)e.st=2.2}
+if(i==3){g.inv=3.5;ring(g.x,g.y,60,"#4aa8ff")}
+if(i==4){ring(g.x,g.y,200,"#9a4ae0");for(const e of g.en)if(gd(e)<200)e.ps=4}
+if(i==5){const t=near(240);if(t){hitE(t,me.a*1.8);const h=Math.round(me.a*.9);g.hp=Math.min(g.max,g.hp+h);pop(g.x,g.y-50,"+"+h,"#2fa86a");ring(t.x,t.y,40,"#d33a6a")}else g.cd[i]=0}}
+function loop(ts){const g=G;if(!g||!g.run)return;if(tab!="brawl"){g.run=0;return}
+const dt=Math.min(.05,(ts-(g.lt||ts))/1000),me=g.me,k=g.keys;g.lt=ts;
+let jx=g.jx+((k.arrowright||k.d)?1:0)-((k.arrowleft||k.a)?1:0),jy=g.jy+((k.arrowdown||k.s)?1:0)-((k.arrowup||k.w)?1:0);const m=Math.hypot(jx,jy);if(m>1){jx/=m;jy/=m}
+const sp=130+me.s*3;g.x=cl(g.x+jx*sp*dt,24,g.W-24);g.y=cl(g.y+jy*sp*dt,40,g.H-24);if(Math.abs(jx)>.15)g.face=jx<0?-1:1;
+g.inv=Math.max(0,g.inv-dt);g.hurt=Math.max(0,g.hurt-dt);g.atk-=dt;for(const i in g.cd)g.cd[i]=Math.max(0,g.cd[i]-dt);
+if(!g.en.length){g.wait-=dt;if(g.wait<=0){if(g.wave>0){const b=10*g.wave;S.coins+=b;g.coins+=b;pop(g.x,g.y-60,"Wave clear +"+b+"🪙","#d99a10");save()}spawn();g.wait=0}}
+if(g.atk<=0){const t=near(300);if(t){g.atk=.55;shoot(t.x,t.y,me.a*.8,9,TCOL[me.t])}}
+for(const s of g.sh){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;for(const e of g.en){if(!e.dead&&Math.hypot(e.x-s.x,e.y-s.y)<s.r+20){hitE(e,s.dmg);s.life=0;break}}if(s.x<-30||s.y<-30||s.x>g.W+30||s.y>g.H+30)s.life=0;if(s.life<=0)s.el.remove();else s.el.style.transform=`translate(${s.x-s.r}px,${s.y-s.r}px)`}
+g.sh=g.sh.filter(s=>s.life>0);
+for(const e of g.en){if(e.dead)continue;if(e.ps>0){e.ps-=dt;e.hp-=8*dt;if(e.hp<=0){killE(e);continue}}
+if(e.st>0)e.st-=dt;else{const dx=g.x-e.x,dy=g.y-e.y,d=Math.hypot(dx,dy)||1;if(d>30){e.x+=dx/d*e.sp*dt;e.y+=dy/d*e.sp*dt}e.fl=dx<0?-1:1;e.atk-=dt;if(d<36&&e.atk<=0){e.atk=.85;if(g.inv<=0){const dm=Math.max(1,Math.round(4+g.wave*1.3-me.d/4));g.hp-=dm;g.hurt=.15;pop(g.x,g.y-40,"-"+dm,"#ff8a3d")}}}
+e.el.style.transform=`translate(${e.x-23}px,${e.y-23}px)`;e.el.firstChild.style.transform=`scaleX(${e.fl})`;e.el.style.opacity=e.st>0?.6:1}
+g.en=g.en.filter(e=>!e.dead);
+g.pl.style.transform=`translate(${g.x-28}px,${g.y-28}px)`;g.pl.firstChild.style.transform=`scaleX(${g.face})`;g.pl.style.filter=g.inv>0?"drop-shadow(0 0 10px #4aa8ff)":g.hurt>0?"brightness(1.8)":"";
+document.getElementById("ht").textContent=`Wave ${g.wave} · ${g.kills} kills · 🪙${g.coins}`;document.getElementById("hf").style.width=Math.max(0,g.hp/g.max*100)+"%";document.getElementById("co").textContent=S.coins;
+for(const i of me.ab){const b=document.getElementById("ab"+i),c=g.cd[i]||0;if(b){b.disabled=c>0;b.lastChild.textContent=c>0?Math.ceil(c):""}}
+if(g.hp<=0){g.run=0;S.best=Math.max(S.best||0,g.wave);g.last={wave:g.wave,kills:g.kills,coins:g.coins};save();render();return}
+requestAnimationFrame(loop)}
+addEventListener("keydown",e=>{if(G&&G.run){const k=e.key.toLowerCase();G.keys[k]=1;if(k=="1"||k=="2"){const i=G.me.ab[+k-1];if(i!=null)useAb(i)}if(k.startsWith("arrow"))e.preventDefault()}});
+addEventListener("keyup",e=>{if(G)G.keys[e.key.toLowerCase()]=0});
 setTimeout(()=>{if(!window.FB)document.getElementById("v").innerHTML='<div class="card">⚠️ Could not load. Open this from your website link (not from the Files app), and check your internet.</div>'},5000);
 </script>
 <script type="module">

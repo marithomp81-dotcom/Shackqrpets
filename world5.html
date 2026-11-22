@@ -79,7 +79,7 @@ const AB=[{n:"Fireball",i:"🔥",d:"1.8x damage"},{n:"Heal",i:"💚",d:"Restore 
 const ARM=[{n:"Leather Vest",p:60,d:4},{n:"Iron Plate",p:200,d:10},{n:"Dragon Mail",p:600,d:22}];
 const ACC=[{n:"Speed Boots",p:50,a:2,s:3},{n:"Power Ring",p:150,a:7,s:0},{n:"Crown",p:500,a:14,s:5}];
 const TIERS=[["rare","Rare",[1,4,7]],["epic","Epic",[2,8,14]],["legend","Legendary",[4,16,28]],["myth","Mythical",[15,60,105]]],SIZES=[1,5,10];
-const LINKS={tip:"",rare1:"",rare5:"",rare10:"",epic1:"",epic5:"",epic10:"",legend1:"",legend5:"",legend10:"",myth1:"",myth5:"",myth10:""};
+const LINKS={tip:"",rare1:"",rare5:"",rare10:"",epic1:"",epic5:"",epic10:"",legend1:"",legend5:"",legend10:"",myth1:"",myth5:"",myth10:""};const PAY={bpay:"@vexqmc",contact:"Instagram @shacko_donn",ig:"shacko_donn",rate:160,on:false};
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
 const MYN=["Aurora Fox","Void Drake","Starlight Owl","Nova Slime","Eclipse Bear","Tidal Newt","Phantom Wolf","Celestial Moth","Prism Crab","Mirage Bunny","Solar Fox","Abyss Drake","Lunar Owl","Cosmic Slime","Ember Bear","Glacier Newt","Thunder Wolf","Dream Moth","Coral Crab","Spirit Bunny"];
 const spOf=i=>i>=1000?(i-1000)%10:Math.floor(i/10)%10;
@@ -104,11 +104,22 @@ function fightP(u){const x=ARENA.find(a=>a.uid==u);if(!x)return;const p=pet(Numb
 function buy(k,i){const it=(k=="ar"?ARM:ACC)[i];if(S.coins<it.p){msg="Not enough coins";return render()}if(S.items.includes(k+i))return;S.coins-=it.p;S.items.push(k+i);save();msg="Bought "+it.n;render()}
 function eq(k,i){if(S.act==null)return;const g=S.gear[S.act]||(S.gear[S.act]={});g[k]=g[k]===i?undefined:i;save();render()}
 function setAct(i){S.act=i;save();render()}
-function iap(k){const u=LINKS[k];if(!u){alert("Coming soon!");return}window.open(u,"_blank")}
+let sel=null;
+function iap(k){const u=LINKS[k];if(u){window.open(u,"_blank");return}sel=k;render();window.scrollTo(0,0)}
+function payCard(){if(!sel)return "";if(!PAY.on)return `<div class=card><b>🛒 Coming soon!</b><div class=mu style="margin:6px 0">Buying codes opens very soon. Follow <a href="https://instagram.com/${esc(PAY.ig)}" target="_blank" rel="noopener" style="color:var(--ac)">@${esc(PAY.ig)}</a> on Instagram to hear first.</div><button class=s onclick="sel=null;render()">Close</button></div>`;const m=sel.match(/^([a-z]+)(\d*)$/),t=TIERS.find(x=>x[0]==m[1]);let what="a tip",usd=0,n=1;if(t){n=+m[2];what=`${t[1]} pet code${n>1?"s ×"+n:""}`;usd=t[2][SIZES.indexOf(n)]}
+const can=t&&FB.on&&FB.user;
+return `<div class=card><b>🛒 ${what}${usd?` · $${usd} (about J$${Math.round(usd*PAY.rate)})`:""}</b><div class=mu style="margin:6px 0">1. Send the money to BPay: <b>${esc(PAY.bpay)}</b><br>2. Come back here and tap the button below.<br>3. Your code${n>1?"s":""} will appear in <b>My orders</b> as soon as the payment is confirmed.<br>Problem? Message <a href="https://instagram.com/${esc(PAY.ig)}" target="_blank" rel="noopener" style="color:var(--ac)">${esc(PAY.contact)}</a>.</div>${can?`<input id=oref placeholder="Your BPay name or reference" maxlength=60><button onclick="submitOrder()">✅ I paid. Send my code${n>1?"s":""}</button>`:`<div class=mu>${t?"Log in first to place an order.":"Thank you! ☕"}</div>`}<button class=s onclick="sel=null;render()">Close</button></div>`}
+let ORD=[],ordUn=null,ordSub=0,ordMsg="";
+function ordWatch(){if(ordSub||!FB.on||!FB.user)return;ordSub=1;ordUn=FB.myOrders(a=>{ORD=a.sort((x,y)=>(y.t||0)-(x.t||0));if(tab=="store")render()})}
+async function submitOrder(){const m=(sel||"").match(/^([a-z]+)(\d+)$/),ref=((document.getElementById("oref")||{}).value||"").trim().slice(0,60);if(!m||!FB.user)return;
+if(!ref){ordMsg="Type your BPay name or reference first.";return render()}
+const t=TIERS.find(x=>x[0]==m[1]),n=+m[2];try{await FB.order({uid:FB.user.uid,email:FB.user.email,tier:m[1],n,usd:t[2][SIZES.indexOf(n)],ref,st:"pending",codes:[],t:Date.now()});sel=null;ordMsg="✅ Order sent! Your code will show up below once your payment is confirmed (usually a few minutes)."}catch(e){ordMsg="Could not send the order. Try again."}render()}
+function ordersHTML(){if(!FB.on||!FB.user)return "";const L=ORD.map(o=>{const t=TIERS.find(x=>x[0]==o.tier),nm=t?t[1]:o.tier;return `<div style="margin:8px 0;padding-top:8px;border-top:1px solid var(--ln)"><div class=row><span>${esc(nm)} ×${Number(o.n)||1} · $${Number(o.usd)||0}</span><span>${o.st=="done"?"✅ Ready":o.st=="rejected"?"❌ Rejected":"⏳ Waiting"}</span></div>${o.st=="done"?(o.codes||[]).map(c=>`<div class=row style="margin:4px 0"><b style="letter-spacing:1px">${esc(c)}</b><button onclick="scan('${esc(c)}')">Redeem</button></div>`).join(""):""}</div>`}).join("");
+return `<div class=card><b>📦 My orders</b>${ordMsg?`<div class=mu>${esc(ordMsg)}</div>`:""}${L||`<div class=mu>No orders yet.</div>`}</div>`}
 function card(p,x){return `<div class=pet><div class=em>${art(p.id,64)}</div><div style="flex:1"><b>${esc(p.name)}</b> <span class=tag style="background:${R[p.r][1]}">${R[p.r][0]}</span><div class=mu>#${p.id} · ${TY[p.t]}</div><div class=mu>❤️${x.hp} ⚔️${x.a} 🛡️${x.d} ⚡${x.s}</div><div class=mu>${p.ab.map(i=>AB[i].i+AB[i].n).join(" · ")}</div><div class=mu>💰 Value ${value(p.id)}</div></div></div>`}
 const bar=(u,n)=>`<div class=row><b>${art(u.p.id,22)} ${esc(u.p.name)}</b><span class=mu>${Math.max(0,u.hp)}/${u.max}${u.sh?" 🛡️":""}${u.stun?" ⚡":""}${u.psn?" ☠️":""}</span></div><div class=bar><i style="width:${Math.max(0,u.hp)/u.max*100}%"></i></div>`;
 function render(){fixS();if(!window.FB){v.innerHTML="Loading…";return}document.getElementById("co").textContent=S.coins;document.getElementById("ut").innerHTML=FB.on&&FB.user?`<button class=s onclick="FB.out()">Log out</button>`:"";if(FB.on&&!FB.user){nv.innerHTML="";v.innerHTML=landing();return}if(FB.on&&FB.user&&!FB.loaded){nv.innerHTML="";v.innerHTML=loadErr?`<div class=card>⚠️ ${loadErr==1?"Could not load your saved game.":"Could not create your save."} This usually means the Firebase rules are not published yet, or you are offline. Nothing was changed.<br><button onclick="location.reload()">Try again</button> <button class=s onclick="FB.out()">Log out</button></div>`:`<div class=card>Loading your game…</div>`;return}
-const T={scan:"🎟️ Redeem",pets:"🐾 Pets",fight:"⚔️ Fight",brawl:"🕹️ Brawl",bag:"🎒 Bag",arena:"🌐 Arena",shop:"🛒 Shop",store:"💵 Store"};
+const T={scan:"🎟️ Redeem",pets:"🐾 Pets",fight:"⚔️ Fight",brawl:"🕹️ Brawl",bag:"🎒 Bag",arena:"🌐 Arena",friends:"👥 Friends",shop:"🛒 Shop",store:"💵 Store"};
 nv.innerHTML=Object.keys(T).map(k=>`<button class="${k==tab?"on":""}" onclick="tab='${k}';msg='';render()">${T[k]}</button>`).join("");
 if(tab=="brawl"&&G&&G.run)return;let h=msg?`<div class=card>${msg}</div>`:"";
 if(tab=="scan")h+=`<div class=card><b>Enter a code</b><div class=mu>Each code works once and gives you a pet. Buy codes in the Store tab.</div><input id=ci placeholder="QRP-XXXXXXXX" autocapitalize=characters><button onclick="scan(ci.value)">Redeem</button></div><div class=card><b>🎁 Free daily pet</b><div class=mu>Come back every day for a free pet.</div><button class=s onclick="daily()">Claim</button></div><div class=mu>Collected: ${new Set(S.pets).size}/1020 · Wins: ${S.wins}</div>`;
@@ -119,11 +130,12 @@ if(tab=="arena"){if(!FB.on)h+=`<div class=card><b>🌐 Online</b><div class=mu>T
 else{h+=`<div>${[["board","🏆 Leaderboard"],["market","🏪 Market"],["duel","🤝 Duel"]].map(x=>`<button class="${sub2==x[0]?"":"s"}" onclick="sub2='${x[0]}';${x[0]=="market"?"mkRefresh();":""}render()">${x[1]}</button>`).join("")}</div>`;
 if(sub2=="duel")h+=duelHTML();else if(!FB.user.emailVerified)h+=verifyCard();else if(sub2=="market")h+=marketHTML();else{if(!arenaOn){arenaOn=1;refresh()}h+=`<div class=card><b>Your arena pet</b><input id=nk placeholder="Nickname" maxlength=16 value="${esc(S.nick)}" onchange="S.nick=this.value;save()"><button onclick="S.nick=nk.value;save();pub()">Join / update</button><button class=s onclick="refresh()">Refresh</button><div class=mu>${esc(aMsg)}</div></div><h3>🏆 Leaderboard</h3>`+
 (ARENA.length?ARENA.map(a=>{const p=pet(Number(a.id)||0),me=a.uid==FB.user.uid;return `<div class="card row"><div><b>${esc(a.nick)}${me?" (you)":""}</b><div class=mu>${art(p.id,22)} ${esc(p.name)} · ${R[p.r][0]} · ${Number(a.wins)||0} wins</div></div>${me?"":`<button onclick="fightP('${esc(a.uid)}')" ${S.act==null?"disabled":""}>Fight</button>`}</div>`}).join(""):`<div class=card>No players yet. Be the first!</div>`)}}}
+if(tab=="friends")h+=chatId?chatHTML():friendsHTML();
 if(tab=="bag"){h+=`<div class=card><b>🧪 Potions</b>${PO.map((p,k)=>`<div class=row style="margin:6px 0"><span>${p.i} ${p.n} <span class=mu>${p.d}</span></span><b>×${S.pots[k]}</b></div>`).join("")}<div class=mu>Find potions in chests during Brawl, then use them in the fight.</div></div><h3>⚔️ Weapons</h3>`+(S.weapons.length?S.weapons.map(i=>`<div class="card row"><div><b>${W[i].i} ${W[i].n}</b> <span class=tag style="background:${R[W[i].r][1]}">${R[W[i].r][0]}</span><div class=mu>⚔️ +${W[i].a} attack</div></div><button class="${S.wp===i?"":"s"}" onclick="eqw(${i})">${S.wp===i?"Equipped":"Equip"}</button></div>`).join(""):`<div class=card>No weapons yet. Open chests in Brawl! 📦</div>`)}
 if(tab=="shop"){const row=(k,L)=>L.map((it,i)=>{const own=S.items.includes(k+i),on=S.act!=null&&(S.gear[S.act]||{})[k]===i;return `<div class="card row"><div><b>${it.n}</b><div class=mu>${k=="ar"?"🛡️+"+it.d:"⚔️+"+it.a+(it.s?" ⚡+"+it.s:"")}</div></div>${own?`<button class=s onclick="eq('${k}',${i})">${on?"Unequip":"Equip"}</button>`:`<button onclick="buy('${k}',${i})">🪙${it.p}</button>`}</div>`}).join("");
 h+=`<h3>Armor</h3>${row("ar",ARM)}<h3>Accessories</h3>${row("ac",ACC)}<div class=mu>Gear equips on your active pet.</div>`}
-if(tab=="store")h+=`<div class=card><b>Buy pet codes</b><div class=mu>Pay, then the seller sends you your code(s). Enter them on the Redeem tab. Bundles save up to 30%.</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet code</b><div>${SIZES.map((n,j)=>`<button onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")+`<div class=card><div class=row><span class=mu>Tip the creator ☕</span><button class=s onclick="iap('tip')">Tip</button></div></div>`;
-document.getElementById("v").innerHTML=h;if(tab=="pets")startHab()}
+if(tab=="store")h+=(ordWatch(),"")+payCard()+ordersHTML()+`<div class=card><b>Buy pet codes</b><div class=mu>Pay, then the seller sends you your code(s). Enter them on the Redeem tab. Bundles save up to 30%.</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet code</b><div>${SIZES.map((n,j)=>`<button onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")+`<div class=card><div class=row><span class=mu>Tip the creator ☕</span><button class=s onclick="iap('tip')">Tip</button></div></div>`;
+document.getElementById("v").innerHTML=h;if(tab=="pets")startHab();if(tab=="friends"&&chatId&&FB.on&&FB.user)drawMsgs()}
 const DEF=()=>({coins:100,seen:[],pets:[],items:[],gear:{},act:null,wins:0,nick:"",daily:0});
 async function scan(code){code=(code||"").trim().toUpperCase().replace(/\s+/g,"");if(!code)return;
 if(FB.on){msg="Checking…";render();const r=await FB.redeem(code);if(r==-2)msg="⚠️ Could not check the code. Try again.";else if(r<0)msg="❌ Invalid or already used code.";else{give(r,"🎉 You got ");return render()}return render()}
@@ -133,7 +145,7 @@ S.seen.push(h);give(hash(code)%1000,"🎉 You got ");render()}
 let arenaOn=0;function refresh(){FB.board().then(a=>{ARENA=a;if(tab=="arena")render()}).catch(()=>{aMsg="Arena offline"})}
 async function pub(){if(!FB.on||!FB.user||S.act==null)return;const g=S.gear[S.act]||{};try{await FB.pub({nick:S.nick||"Player",id:S.act,ar:g.ar==null?-1:g.ar,ac:g.ac==null?-1:g.ac,wins:S.wins,t:Date.now()});aMsg="✅ Arena pet saved";refresh()}catch(e){aMsg="Could not save"}if(tab=="arena")render()}
 async function doAuth(m){const e=em.value.trim(),p=pw.value;msg="";try{await(m=="up"?FB.signup(e,p):FB.login(e,p))}catch(x){const c=x.code||"";msg="❌ "+(c.includes("email-already")?"That email is already registered. Log in instead.":c.includes("weak")?"Password must be at least 6 characters.":c.includes("invalid-email")?"Enter a valid email.":/credential|password|user-not-found/.test(c)?"Wrong email or password.":"Something went wrong. Try again.");render()}}
-function landing(){return (msg?`<div class=card>${msg}</div>`:"")+`<div class=card><h2>Collect pets. Battle friends. 🐾</h2><div class=mu>Over 1,000 pets, powerful abilities, armor, and a live arena leaderboard. Free to play.</div></div>
+function landing(){return payCard()+(msg?`<div class=card>${msg}</div>`:"")+`<div class=card><h2>Collect pets. Battle friends. 🐾</h2><div class=mu>Over 1,000 pets, powerful abilities, armor, and a live arena leaderboard. Free to play.</div></div>
 <div class=card><b>Sign up free</b><input id=em type=email placeholder="Email" autocomplete=email><input id=pw type=password placeholder="Password (6+ characters)" autocomplete=current-password><button onclick="doAuth('up')">Sign up</button><button class=s onclick="doAuth('in')">Log in</button><div class=mu>You get a free starter pet and a new free pet every day.</div></div>
 <div class=card><b>Why play</b><div class=mu>⚔️ Turn-based battles with 6 abilities<br>🛡️ Armor and accessories to buy<br>🌐 Fight other players in the Arena<br>🎟️ Rare, Epic and Legendary pet codes</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet codes</b><div>${SIZES.map((n,j)=>`<button class=s onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")}
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -317,12 +329,12 @@ o.nick=String(o.nick||"").slice(0,16);if(!o.pets.includes(o.act))o.act=o.pets.le
 async function onUser(u,d,err){
 if(!FB.on){if(!S.pets.length)give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");tab="scan";B=null;arenaOn=0;render();return}
 FB.loaded=false;if(DU)duelClose();
-if(!u){S=clean({});loadErr=0;render();return}
+if(!u){S=clean({});loadErr=0;if(ordUn)ordUn();ordUn=null;ordSub=0;ORD=[];if(frUn)frUn();frUn=null;frSub=0;FR=[];if(chUn)chUn();chUn=null;chatId=null;render();return}
 if(err){S=clean({});loadErr=1;render();return}
 loadErr=0;render();
 if(d){S=clean(d);if(!S.started&&!S.pets.length)give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");S.started=true;if(!d.started){const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}}
 else{S=clean({});give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");S.started=true;const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}
-FB.loaded=true;tab="scan";B=null;arenaOn=0;render();claimCredits()}
+FB.loaded=true;tab="scan";B=null;arenaOn=0;render();claimCredits();ensureProfile()}
 function verifyCard(){return `<div class=card><b>📧 Verify your email</b><div class=mu>To keep the game fair, trading and the leaderboard need a verified email. We sent a link to ${esc(FB.user.email)}. Open it, then tap the button below.</div><button onclick="doVerified()">I verified it</button><button class=s onclick="resend()">Resend email</button><div class=mu>${esc(mkMsg)}</div></div>`}
 async function doVerified(){try{await FB.reload();mkMsg=FB.user.emailVerified?"✅ Verified!":"Not verified yet. Check your inbox and spam."}catch(e){mkMsg="Try again in a moment."}render()}
 async function resend(){try{await FB.resend();mkMsg="Email sent. Check your spam folder too."}catch(e){mkMsg="Wait a minute and try again."}render()}
@@ -359,12 +371,36 @@ const log=[...(d.log||[]),...B.log.map(nm)].slice(-14),pu=u=>({hp:Math.round(u.h
 const patch={["u."+r]:pu(m),["u."+o]:pu(e),log,fx:{[r]:B.fx.m||"",[o]:B.fx.o||""},pop:{[r]:B.pop.m||"",[o]:B.pop.o||""},n:d.n+1,turn:done?d.turn:o};
 if(done){patch.st="done";patch.win=e.hp<=0?r:m.hp<=0?o:r}
 B=sv;try{await FB.roomUpd(DU.code,patch)}catch(x){if(DU){DU.busy=0;duMsg="Move failed. Try again.";render()}}}
+let FR=[],frUn=null,frSub=0,frMsg="",chatId=null,CH=[],chUn=null,chDraft="";
+function ensureProfile(){if(!FB.on||!FB.user||!FB.profile)return;if(!S.fcode){S.fcode=Array.from({length:6},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");save()}
+FB.profile({uid:FB.user.uid,nick:(S.nick||"Player").slice(0,16),code:S.fcode,t:Date.now()}).then(c=>{if(c&&c!=S.fcode){S.fcode=c;save();if(tab=="friends")render()}}).catch(()=>{})}
+function frWatch(){if(frSub||!FB.on||!FB.user)return;frSub=1;frUn=FB.watchF(a=>{FR=a;if(tab=="friends"&&!chatId)render()})}
+const fName=f=>{const o=f.users.find(u=>u!=FB.user.uid);return(f.nicks&&f.nicks[o])||"Player"};
+function friendsHTML(){if(!FB.on)return `<div class=card><b>👥 Friends</b><div class=mu>Turn on accounts to add friends and chat.</div></div>`;frWatch();const me=FB.user.uid,pend=FR.filter(f=>f.st=="pending"&&f.from!=me),sent=FR.filter(f=>f.st=="pending"&&f.from==me),ok=FR.filter(f=>f.st=="ok");
+return `<div class=card><b>Your friend code</b><div style="font-size:38px;font-weight:800;letter-spacing:6px;text-align:center">${esc(S.fcode||"…")}</div><div class=mu>Give this code to your friends so they can add you.</div><input id=fn placeholder="Nickname" maxlength=16 value="${esc(S.nick)}"><button class=s onclick="setNick()">Save nickname</button></div>
+<div class=card><b>Add a friend</b><input id=fc placeholder="Friend's 6-letter code" maxlength=6 style="text-transform:uppercase"><button onclick="addFriend()">Send request</button><div class=mu>${esc(frMsg)}</div></div>`
++(pend.length?`<h3>Friend requests</h3>`+pend.map(f=>`<div class="card row"><b>${esc(fName(f))}</b><span><button onclick="frAcc('${esc(f.id)}')">Accept</button><button class=s onclick="frDel('${esc(f.id)}')">Decline</button></span></div>`).join(""):"")
++`<h3>Friends</h3>`+(ok.length?ok.map(f=>`<div class="card row"><b>${esc(fName(f))}</b><span><button onclick="openChat('${esc(f.id)}')">💬 Chat</button><button class=s onclick="frDel('${esc(f.id)}')">✕</button></span></div>`).join(""):`<div class=card>No friends yet. Share your code!</div>`)
++(sent.length?`<div class=mu>Waiting for: ${sent.map(f=>esc(fName(f))).join(", ")}</div>`:"")}
+function chatHTML(){const f=FR.find(x=>x.id==chatId);return `<div class=card><div class=row><b>💬 ${esc(f?fName(f):"Friend")}</b><button class=s onclick="closeChat()">Back</button></div><div id=msgs style="height:46vh;overflow:auto;margin:8px 0"></div><div class=row><input id=cm placeholder="Message" maxlength=300 value="${esc(chDraft)}" oninput="chDraft=this.value" onkeydown="if(event.key=='Enter')sendMsg()"><button onclick="sendMsg()">Send</button></div><button class=s onclick="challenge()">⚔️ Challenge to a duel</button></div>`}
+function drawMsgs(){const m=document.getElementById("msgs");if(!m)return;const me=FB.user.uid;
+m.innerHTML=CH.length?CH.map(x=>{const mine=x.from==me,d=String(x.text||"").match(/Duel code: ([A-Z]{4})/);return `<div style="text-align:${mine?"right":"left"};margin:6px 0"><span style="display:inline-block;max-width:82%;padding:8px 12px;border-radius:14px;background:${mine?"var(--ac)":"var(--ln)"};color:${mine?"#fff":"var(--tx)"};text-align:left;word-break:break-word">${esc(x.text)}</span>${d&&!mine?`<br><button onclick="joinFromChat('${d[1]}')">⚔️ Join duel</button>`:""}</div>`}).join(""):`<div class=mu>Say hi! 👋</div>`;m.scrollTop=m.scrollHeight}
+function openChat(id){chatId=id;if(chUn)chUn();CH=[];chDraft="";chUn=FB.watchChat(id,a=>{CH=a;drawMsgs()});render()}
+function closeChat(){if(chUn)chUn();chUn=null;chatId=null;render()}
+function sendMsg(){const i=document.getElementById("cm"),t=((i&&i.value)||chDraft||"").trim().slice(0,300);if(!t||!chatId)return;chDraft="";if(i)i.value="";FB.say(chatId,{from:FB.user.uid,nick:S.nick||"Player",text:t,t:Date.now()}).catch(()=>{frMsg="Could not send that message."})}
+async function challenge(){if(S.act==null||!chatId)return;const id=chatId;await duelCreate();if(DU&&DU.code){FB.say(id,{from:FB.user.uid,nick:S.nick||"Player",text:"⚔️ Duel code: "+DU.code,t:Date.now()}).catch(()=>{});chatId=null;if(chUn)chUn();chUn=null;sub2="duel";tab="arena";render()}}
+function joinFromChat(c){sub2="duel";tab="arena";chatId=null;if(chUn)chUn();chUn=null;render();duelJoin(c)}
+function setNick(){S.nick=((document.getElementById("fn")||{}).value||"").trim().slice(0,16)||"Player";save();ensureProfile();frMsg="Nickname saved.";render()}
+async function addFriend(){const c=((document.getElementById("fc")||{}).value||"").trim().toUpperCase();if(c.length!=6){frMsg="Type the 6-letter code.";return render()}if(c==S.fcode){frMsg="That is your own code.";return render()}
+try{const o=await FB.findCode(c);if(!o)frMsg="No player has that code.";else{const r=await FB.reqFriend({uid:o.uid,nick:o.nick||"Player",me:S.nick||"Player"});frMsg=r=="ok"?"Request sent to "+(o.nick||"Player")+"!":"You are already friends, or a request is waiting."}}catch(e){frMsg="Could not send ("+((e&&e.code)||"error")+")."}render()}
+async function frAcc(id){try{await FB.acceptF(id)}catch(e){frMsg="Could not accept."}render()}
+async function frDel(id){if(!confirm("Remove this?"))return;try{await FB.removeF(id);if(chatId==id)closeChat()}catch(e){frMsg="Could not remove."}render()}
 setTimeout(()=>{if(!window.FB)document.getElementById("v").innerHTML='<div class="card">⚠️ Could not load. Open this from your website link (not from the Files app), and check your internet.</div>'},5000);
 </script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendEmailVerification}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import{getFirestore,doc,getDoc,setDoc,runTransaction,collection,getDocs,query,orderBy,limit,deleteDoc,updateDoc,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getFirestore,doc,getDoc,setDoc,runTransaction,collection,getDocs,query,orderBy,limit,deleteDoc,updateDoc,onSnapshot,where,addDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // PASTE YOUR FIREBASE CONFIG HERE (see SETUP.md). Leave apiKey as PASTE_HERE for offline demo mode.
 const CFG={apiKey:"AIzaSyAk4WAdnh3gh0AwclWhoXKfziweiZDK-70",authDomain:"qr-pets-380f0.firebaseapp.com",projectId:"qr-pets-380f0",appId:"1:352724724489:web:221a5d31b3df23e4cec1d8"};
 const FB=window.FB={on:false,user:null};
@@ -386,6 +422,15 @@ FB.roomSet=(c,o)=>setDoc(doc(db,"rooms",c),o);FB.roomUpd=(c,p)=>updateDoc(doc(db
 FB.roomSub=(c,cb)=>onSnapshot(doc(db,"rooms",c),s=>cb(s.exists()?s.data():null),()=>cb(null));
 FB.roomJoin=async(c,mk)=>{const r=doc(db,"rooms",c);return await runTransaction(db,async tx=>{const s=await tx.get(r);if(!s.exists())return"none";const d=s.data();if(d.host===FB.user.uid)return"self";if(d.guest||d.st!=="wait")return"full";tx.update(r,mk(d));return"ok"})};
 FB.signup=async(e,p)=>{const c=await createUserWithEmailAndPassword(au,e,p);try{await sendEmailVerification(c.user)}catch(x){}return c};
+FB.profile=async p=>{const r=doc(db,"profiles",FB.user.uid),s=await getDoc(r);if(s.exists()){await updateDoc(r,{nick:p.nick});return s.data().code}await setDoc(r,p);return p.code};
+FB.findCode=async c=>{const q=await getDocs(query(collection(db,"profiles"),where("code","==",c),limit(1)));return q.empty?null:{uid:q.docs[0].id,...q.docs[0].data()}};
+FB.reqFriend=async o=>{const a=[FB.user.uid,o.uid].sort(),id=a.join("_"),r=doc(db,"friendships",id);if((await getDoc(r)).exists())return"exists";await setDoc(r,{users:a,from:FB.user.uid,nicks:{[FB.user.uid]:o.me,[o.uid]:o.nick},st:"pending",t:Date.now()});return"ok"};
+FB.acceptF=id=>updateDoc(doc(db,"friendships",id),{st:"ok"});FB.removeF=id=>deleteDoc(doc(db,"friendships",id));
+FB.watchF=cb=>onSnapshot(query(collection(db,"friendships"),where("users","array-contains",FB.user.uid)),q=>cb(q.docs.map(d=>({id:d.id,...d.data()}))),()=>cb([]));
+FB.watchChat=(id,cb)=>onSnapshot(query(collection(db,"chats",id,"msgs"),orderBy("t","desc"),limit(40)),q=>cb(q.docs.map(d=>({id:d.id,...d.data()})).reverse()),()=>cb([]));
+FB.say=(id,m)=>addDoc(collection(db,"chats",id,"msgs"),m);
+FB.order=o=>addDoc(collection(db,"orders"),o);
+FB.myOrders=cb=>onSnapshot(query(collection(db,"orders"),where("uid","==",FB.user.uid)),q=>cb(q.docs.map(d=>({id:d.id,...d.data()}))),()=>cb([]));
 FB.load=async()=>{try{await FB.user.getIdToken(true)}catch(x){}try{const s=await getDoc(doc(db,"users",FB.user.uid));return{ok:1,d:s.exists()?s.data():null}}catch(e){return{ok:0,d:null}}};
 onAuthStateChanged(au,async u=>{FB.user=u;FB.loaded=false;if(!u)return window.onUser(null,null,0);const r=await FB.load();window.onUser(u,r.d,r.ok?0:1)});}}catch(e){FB.on=false}
 if(!FB.on)window.onUser(null,null);

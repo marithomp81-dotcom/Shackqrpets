@@ -6,13 +6,13 @@
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import{getAuth,signInWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import{getFirestore,doc,setDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getFirestore,doc,writeBatch}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 // PASTE THE SAME FIREBASE CONFIG AS index.html
 const CFG={apiKey:"AIzaSyAk4WAdnh3gh0AwclWhoXKfziweiZDK-70",authDomain:"qr-pets-380f0.firebaseapp.com",projectId:"qr-pets-380f0",appId:"1:352724724489:web:221a5d31b3df23e4cec1d8"};
 const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,"0")).join("");
 go.onclick=async()=>{try{const app=initializeApp(CFG),au=getAuth(app),db=getFirestore(app);await signInWithEmailAndPassword(au,em.value.trim(),pw.value);
-const codes=[...new Set(tx.value.toUpperCase().match(/QRP-[A-Z0-9]{8}/g)||[])];let n=0;
-for(const c of codes){await setDoc(doc(db,"codes",await sha(c)),{pet:hash(c)%1000});out.textContent="Uploaded "+(++n)+" / "+codes.length}
+const seen=new Set(),rows=[];for(const m of tx.value.toUpperCase().matchAll(/(QRP-[A-Z0-9]{8})(?:[ \t]+#(\d{1,4}))?/g)){if(seen.has(m[1]))continue;seen.add(m[1]);const pet=m[2]!=null?Math.min(1019,+m[2]):hash(m[1])%1000;rows.push([m[1],pet])}
+let n=0;for(let i=0;i<rows.length;i+=200){const b=writeBatch(db);for(const[c,pet]of rows.slice(i,i+200))b.set(doc(db,"codes",await sha(c)),{pet});await b.commit();n+=Math.min(200,rows.length-i);out.textContent="Uploaded "+n+" / "+rows.length}
 out.textContent+="\nDone. Codes are live.";}catch(e){out.textContent="Error: "+(e.message||e)}};
 </script></body></html>

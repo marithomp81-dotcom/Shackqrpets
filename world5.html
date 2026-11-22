@@ -123,7 +123,7 @@ function render(){fixS();if(!window.FB){v.innerHTML="Loading…";return}document
 const T={scan:"🎟️ Redeem",pets:"🐾 Pets",fight:"⚔️ Fight",brawl:"🕹️ Brawl",bag:"🎒 Bag",arena:"🌐 Arena",friends:"👥 Friends",shop:"🛒 Shop",store:"💵 Store"};
 nv.innerHTML=Object.keys(T).map(k=>`<button class="${k==tab?"on":""}" onclick="tab='${k}';msg='';render()">${T[k]}</button>`).join("");
 if(tab=="brawl"&&G&&G.run)return;let h=msg?`<div class=card>${msg}</div>`:"";
-if(tab=="scan")h+=`<div class=card><b>Enter a code</b><div class=mu>Each code works once and gives you a pet. Buy codes in the Store tab.</div><input id=ci placeholder="QRP-XXXXXXXX" autocapitalize=characters><button onclick="scan(ci.value)">Redeem</button></div><div class=card><b>🎁 Free daily pet</b><div class=mu>Come back every day for a free pet.</div><button class=s onclick="daily()">Claim</button></div><div class=mu>Collected: ${new Set(S.pets).size}/1020 · Wins: ${S.wins}</div>`;
+if(tab=="scan")h+=`<div class=card><b>Enter a code</b><div class=mu>Enter a pet code below. The exclusive Shack Overlord code only works on the owner account.</div><input id=ci placeholder="Enter your redeem code" autocapitalize=characters><button onclick="scan(ci.value)">Redeem</button></div><div class=card><b>🎁 Free daily pet</b><div class=mu>Come back every day for a free pet.</div><button class=s onclick="daily()">Claim</button></div><div class=mu>Collected: ${new Set(S.pets).size}/1020 · Wins: ${S.wins}</div>`;
 if(tab=="pets")h+=habitat()+[...new Set(S.pets)].map(pet).map(p=>`<div class=card>${card(p,eff(p))}<div class=row><span class=mu>${S.gear[p.id]?`${(ARM[S.gear[p.id].ar]||{}).n||""} ${(ACC[S.gear[p.id].ac]||{}).n||""}`:"No gear"}</span><button class="${S.act==p.id?"":"s"}" onclick="setAct(${p.id})">${S.act==p.id?"Active":"Set active"}</button></div></div>`).join("");
 if(tab=="brawl")h+=brawlStart();if(tab=="fight"){if(!B)h+=`<div class=card>${card(pet(S.act),eff(pet(S.act)))}<button onclick="pve()">Find opponent</button><div class=mu>Win coins, then buy gear in the Shop. Use abilities (they recharge) to win.</div></div>`;
 else{h+=`<div class=card>${stage()}${bar(B.m)}${bar(B.o)}${B.over?`<button onclick="B=null;render()">Back</button><button class=s onclick="${B.pvp?"tab='arena';B=null;render()":"pve()"}">${B.pvp?"Arena":"Fight again"}</button>`:`<button onclick="turn('atk')" ${B.busy?"disabled":""}>⚔️ Attack</button><button class=s onclick="turn('def')" ${B.busy?"disabled":""}>🛡️ Defend</button>${B.m.p.ab.map(i=>`<button onclick="turn('ab',${i})" ${B.m.cd[i]>0||B.busy?"disabled":""}>${AB[i].i} ${AB[i].n}${B.m.cd[i]>0?" ("+B.m.cd[i]+")":""}</button>`).join("")}<div class=mu>${B.m.p.ab.map(i=>AB[i].n+": "+AB[i].d).join(" · ")}</div>`}</div><div class="card log">${B.log.slice(-8).reverse().join("<br>")}</div>`}}
@@ -139,6 +139,11 @@ if(tab=="store")h+=(ordWatch(),"")+payCard()+ordersHTML()+`<div class=card><b>Bu
 document.getElementById("v").innerHTML=h;if(tab=="pets")startHab();if(tab=="friends"&&chatId&&FB.on&&FB.user)drawMsgs()}
 const DEF=()=>({coins:100,seen:[],pets:[],items:[],gear:{},act:null,wins:0,nick:"",daily:0});
 async function scan(code){code=(code||"").trim().toUpperCase().replace(/\s+/g,"");if(!code)return;
+if(code==="SHACK-OVERLORD-1000"){
+if(!FB.on||!FB.user||FB.user.uid!==OWNER_UID){msg="❌ This exclusive code is only for the owner's account.";return render()}
+if(S.pets.includes(SHACK_OVERLORD_ID)){S.act=SHACK_OVERLORD_ID;save();msg="👑 Shack Overlord already unlocked. It is now your active pet!";return render()}
+give(SHACK_OVERLORD_ID,"👑 Redeemed exclusive pet: ");return render()
+}
 if(FB.on){msg="Checking…";render();const r=await FB.redeem(code);if(r==-2)msg="⚠️ Could not check the code. Try again.";else if(r<0)msg="❌ Invalid or already used code.";else{give(r,"🎉 You got ");return render()}return render()}
 if(!ok(code)){msg="❌ Invalid code. Check it and try again.";return render()}
 const h=String(hash(code));if(S.seen.includes(h)){msg="❌ This code was already used. Each code works once!";return render()}

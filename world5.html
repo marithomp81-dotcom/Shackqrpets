@@ -83,7 +83,7 @@ const LINKS={tip:"",rare1:"",rare5:"",rare10:"",epic1:"",epic5:"",epic10:"",lege
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
 const MYN=["Aurora Fox","Void Drake","Starlight Owl","Nova Slime","Eclipse Bear","Tidal Newt","Phantom Wolf","Celestial Moth","Prism Crab","Mirage Bunny","Solar Fox","Abyss Drake","Lunar Owl","Cosmic Slime","Ember Bear","Glacier Newt","Thunder Wolf","Dream Moth","Coral Crab","Spirit Bunny"];
 const spOf=i=>i>=1000?(i-1000)%10:Math.floor(i/10)%10;
-const OWNER_UID="S0evGQlmxZOZNNzH15EKRWMQYq93",SHACK_OVERLORD_ID=1020;
+const OWNER_UID="21C5gDiUuxWAP530r3p0SEpNZUg2",SHACK_OVERLORD_ID=1020;
 const pet=i=>{if(i===SHACK_OVERLORD_ID)return{id:i,r:5,name:"Shack Overlord",em:"👑",t:0,hp:1000,a:200,d:100,s:50,ab:[0,1,2,3,4,5]};const r=rar(i),b=40+r*18;return{id:i,r,name:i>=1000?MYN[(i-1000)%20]:NA[i%10]+" "+NB[spOf(i)],em:EM[spOf(i)],t:i%3,hp:b*2+i*7%20,a:Math.round(b/2)+i*3%8,d:Math.round(b/4)+i%5,s:10+i*5%15,ab:r>=5?[i%6,(i+2)%6,(i+4)%6]:r>=3?[i%6,(i+3)%6]:[i%6]}};
 const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
 const ok=c=>/^QRP-[A-Z0-9]{8}$/.test(c)&&hash("k7"+c)%61==3&&hash("m2"+c)%61==5;

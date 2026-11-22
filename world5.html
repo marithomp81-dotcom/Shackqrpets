@@ -83,7 +83,8 @@ const LINKS={tip:"",rare1:"",rare5:"",rare10:"",epic1:"",epic5:"",epic10:"",lege
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
 const MYN=["Aurora Fox","Void Drake","Starlight Owl","Nova Slime","Eclipse Bear","Tidal Newt","Phantom Wolf","Celestial Moth","Prism Crab","Mirage Bunny","Solar Fox","Abyss Drake","Lunar Owl","Cosmic Slime","Ember Bear","Glacier Newt","Thunder Wolf","Dream Moth","Coral Crab","Spirit Bunny"];
 const spOf=i=>i>=1000?(i-1000)%10:Math.floor(i/10)%10;
-const pet=i=>{const r=rar(i),b=40+r*18;return{id:i,r,name:i>=1000?MYN[(i-1000)%20]:NA[i%10]+" "+NB[spOf(i)],em:EM[spOf(i)],t:i%3,hp:b*2+i*7%20,a:Math.round(b/2)+i*3%8,d:Math.round(b/4)+i%5,s:10+i*5%15,ab:r>=5?[i%6,(i+2)%6,(i+4)%6]:r>=3?[i%6,(i+3)%6]:[i%6]}};
+const OWNER_UID="S0evGQlmxZOZNNzH15EKRWMQYq93",SHACK_OVERLORD_ID=1020;
+const pet=i=>{if(i===SHACK_OVERLORD_ID)return{id:i,r:5,name:"Shack Overlord",em:"👑",t:0,hp:1000,a:200,d:100,s:50,ab:[0,1,2,3,4,5]};const r=rar(i),b=40+r*18;return{id:i,r,name:i>=1000?MYN[(i-1000)%20]:NA[i%10]+" "+NB[spOf(i)],em:EM[spOf(i)],t:i%3,hp:b*2+i*7%20,a:Math.round(b/2)+i*3%8,d:Math.round(b/4)+i%5,s:10+i*5%15,ab:r>=5?[i%6,(i+2)%6,(i+4)%6]:r>=3?[i%6,(i+3)%6]:[i%6]}};
 const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
 const ok=c=>/^QRP-[A-Z0-9]{8}$/.test(c)&&hash("k7"+c)%61==3&&hash("m2"+c)%61==5;
 let S={coins:100,seen:[],pets:[],items:[],gear:{},act:null,wins:0,nick:"",daily:0},tab="scan",msg="",B=null,DB=null,UID=null,ARENA=[],aMsg="";
@@ -243,7 +244,7 @@ for(let k=0;k<16;k++){const d=document.createElement("div"),y=Math.random()*(g.H
 let sub2="board",MK=[],mkMsg="";
 function marketHTML(){const mine=[...new Set(S.pets)];
 return `<div class=card><b>Sell a pet</b><select id=sp onchange="sprice.value=value(+this.value)">${mine.map(i=>`<option value=${i}>${esc(pet(i).name)} (#${i}) · value ${value(i)}</option>`).join("")}</select><input id=sprice type=number min=1 placeholder="Price in coins" value="${mine.length?value(mine[0]):""}"><button onclick="mkList()">List for sale</button><div class=mu>Your pet is held safely while listed. When it sells, the coins arrive the next time you open the market.</div></div><div class=mu>${esc(mkMsg)}</div><h3>For sale</h3>`+(MK.length?MK.map(m=>{const p=pet(Number(m.pet)||0),me=m.seller==FB.user.uid;return `<div class="card pet">${art(p.id,48)}<div style="flex:1"><b>${esc(p.name)}</b> <span class=tag style="background:${R[p.r][1]}">${R[p.r][0]}</span><div class=mu>by ${esc(m.nick)} · value ${value(p.id)}</div></div>${me?`<button class=s onclick="mkCancel('${esc(m.id)}')">Cancel</button>`:`<button onclick="mkBuy('${esc(m.id)}')" ${S.coins<m.price?"disabled":""}>🪙${Number(m.price)}</button>`}</div>`}).join(""):`<div class=card>Nothing for sale yet.</div>`)}
-async function mkList(){const id=+document.getElementById("sp").value,pr=Math.min(1e6,Math.max(1,Math.round(+document.getElementById("sprice").value||value(id))));
+async function mkList(){const id=+document.getElementById("sp").value;if(id===SHACK_OVERLORD_ID){mkMsg="Shack Overlord is exclusive and cannot be sold.";return render()}const pr=Math.min(1e6,Math.max(1,Math.round(+document.getElementById("sprice").value||value(id))));
 if(S.pets.length<=1){mkMsg="Keep at least one pet.";return render()}if(!S.pets.includes(id))return;
 try{await FB.list({pet:id,price:pr,nick:S.nick||"Player"});S.pets.splice(S.pets.indexOf(id),1);if(!S.pets.includes(id)){if(S.act==id)S.act=S.pets[0];delete S.gear[id]}save();mkMsg=`Listed ${pet(id).name} for 🪙${pr}`;mkRefresh()}catch(e){mkMsg="Could not list ("+((e&&e.code)||"error")+"). If it says permission-denied, log out and log in again."}render()}
 async function mkBuy(id){const m=MK.find(x=>x.id==id);if(!m||S.coins<m.price)return;try{const ok=await FB.buy(m);if(ok){S.coins-=m.price;give(Number(m.pet),"🛒 Bought ");mkMsg="Purchase complete!"}else mkMsg="Too slow! Someone else bought it."}catch(e){mkMsg="Purchase failed ("+((e&&e.code)||"error")+")."}mkRefresh();render()}
@@ -320,9 +321,9 @@ const ucode=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ";let c="";for(let i=0;i<4;i++
 const myStats=()=>{const p=eff(pet(S.act));return{id:p.id,hp:p.hp,a:p.a,d:p.d,s:p.s}};
 const unit=p=>({hp:p.hp,max:p.hp,sh:0,stun:0,psn:0,cd:{}});
 const cs=(x,m)=>Math.max(1,Math.min(m,Math.floor(+x)||1));
-function dPet(x,nick){const b=pet(Math.max(0,Math.min(1019,Math.floor(+x.id)||0)));return{...b,hp:cs(x.hp,2500),a:cs(x.a,400),d:cs(x.d,200),s:cs(x.s,100),name:nick?`${String(nick).slice(0,14)}’s ${b.name}`:b.name}}
+function dPet(x,nick){const id=Math.floor(+x.id)||0,b=pet(id===SHACK_OVERLORD_ID&&FB.user&&FB.user.uid===OWNER_UID?id:Math.max(0,Math.min(1019,id)));return{...b,hp:id===SHACK_OVERLORD_ID?1000:cs(x.hp,2500),a:id===SHACK_OVERLORD_ID?200:cs(x.a,400),d:id===SHACK_OVERLORD_ID?100:cs(x.d,200),s:id===SHACK_OVERLORD_ID?50:cs(x.s,100),name:nick?`${String(nick).slice(0,14)}’s ${b.name}`:b.name}}
 function clean(d){const n=(x,m)=>Math.max(0,Math.min(m,Math.floor(+x)||0)),o={...DEF(),...d};o.coins=n(o.coins,2e6);o.wins=n(o.wins,1e5);o.best=n(o.best,500);o.daily=n(o.daily,4e12);
-o.pets=(Array.isArray(o.pets)?o.pets:[]).map(x=>Math.floor(+x)).filter(x=>x>=0&&x<1020).slice(0,1000);
+o.pets=(Array.isArray(o.pets)?o.pets:[]).map(x=>Math.floor(+x)).filter(x=>x>=0&&(x<1020||(x===SHACK_OVERLORD_ID&&FB.user&&FB.user.uid===OWNER_UID))).slice(0,1000);
 o.weapons=(Array.isArray(o.weapons)?o.weapons:[]).filter(i=>Number.isInteger(i)&&i>=0&&i<W.length);
 o.pots=[0,1,2].map(k=>n((Array.isArray(o.pots)?o.pots:[])[k],999));o.seen=Array.isArray(o.seen)?o.seen.slice(0,5000):[];o.items=Array.isArray(o.items)?o.items:[];o.gear=o.gear&&typeof o.gear=="object"?o.gear:{};
 o.nick=String(o.nick||"").slice(0,16);if(!o.pets.includes(o.act))o.act=o.pets.length?o.pets[0]:null;if(o.wp!=null&&!o.weapons.includes(o.wp))o.wp=null;return o}
@@ -332,8 +333,8 @@ FB.loaded=false;if(DU)duelClose();
 if(!u){S=clean({});loadErr=0;if(ordUn)ordUn();ordUn=null;ordSub=0;ORD=[];if(frUn)frUn();frUn=null;frSub=0;FR=[];if(chUn)chUn();chUn=null;chatId=null;render();return}
 if(err){S=clean({});loadErr=1;render();return}
 loadErr=0;render();
-if(d){S=clean(d);if(!S.started&&!S.pets.length)give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");S.started=true;if(!d.started){const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}}
-else{S=clean({});give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");S.started=true;const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}
+if(d){S=clean(d);if(FB.user.uid===OWNER_UID&&!S.pets.includes(SHACK_OVERLORD_ID)){S.pets.push(SHACK_OVERLORD_ID);if(S.act==null)S.act=SHACK_OVERLORD_ID;save();msg="👑 Exclusive Shack Overlord unlocked! 1000 HP."; }if(!S.started&&!S.pets.length)give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");S.started=true;if(!d.started){const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}}
+else{S=clean({});give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");if(FB.user.uid===OWNER_UID){S.pets.push(SHACK_OVERLORD_ID);S.act=SHACK_OVERLORD_ID;msg="👑 Exclusive Shack Overlord unlocked! 1000 HP.";}S.started=true;const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}
 FB.loaded=true;tab="scan";B=null;arenaOn=0;render();claimCredits();ensureProfile()}
 function verifyCard(){return `<div class=card><b>📧 Verify your email</b><div class=mu>To keep the game fair, trading and the leaderboard need a verified email. We sent a link to ${esc(FB.user.email)}. Open it, then tap the button below.</div><button onclick="doVerified()">I verified it</button><button class=s onclick="resend()">Resend email</button><div class=mu>${esc(mkMsg)}</div></div>`}
 async function doVerified(){try{await FB.reload();mkMsg=FB.user.emailVerified?"✅ Verified!":"Not verified yet. Check your inbox and spam."}catch(e){mkMsg="Try again in a moment."}render()}

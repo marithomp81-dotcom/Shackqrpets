@@ -1,0 +1,392 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>QR Pets</title>
+<style>
+:root{--bg:#f6f4ff;--cd:#fff;--tx:#1c1b2e;--mu:#6b6a80;--ac:#6c4cf5;--ln:#e3e0f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14121f;--cd:#1e1b30;--tx:#f0eefc;--mu:#9d9ab8;--ac:#8f78ff;--ln:#34304f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14121f;--cd:#1e1b30;--tx:#f0eefc;--mu:#9d9ab8;--ac:#8f78ff;--ln:#34304f;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0 auto;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,sans-serif;max-width:560px;padding:12px 12px 84px}
+h2,h3{margin:8px 0}.top{display:flex;justify-content:space-between;align-items:center}.coin{font-weight:700}
+.card{background:var(--cd);border:1px solid var(--ln);border-radius:14px;padding:12px;margin:10px 0}
+button{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:600;margin:3px 3px 3px 0}button.s{background:transparent;color:var(--ac);border:1px solid var(--ac)}button:disabled{opacity:.4}
+input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);font:inherit;margin:6px 0}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--cd);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px);max-width:560px;margin:auto}
+nav button{flex:1;background:none;color:var(--mu);border-radius:0;padding:10px 0;font-size:12px;margin:0}nav button.on{color:var(--ac)}
+.pet{display:flex;gap:10px;align-items:center}.em{font-size:44px}.tag{font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;color:#fff}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}.mu{color:var(--mu);font-size:13px}
+.log{max-height:200px;overflow:auto;font-size:14px}.win{color:#2fa86a;font-weight:700}.lose{color:#e04a4a;font-weight:700}
+.bar{height:10px;background:var(--ln);border-radius:9px;overflow:hidden;margin:3px 0 10px}.bar i{display:block;height:100%;background:#2fa86a;transition:width .3s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes bobf{0%,100%{transform:translateY(0) scaleX(-1)}50%{transform:translateY(-8px) scaleX(-1)}}
+@keyframes lm{0%,100%{transform:translateX(0)}40%{transform:translateX(70px) scale(1.15)}}
+@keyframes lo{0%,100%{transform:translateX(0)}40%{transform:translateX(-70px) scale(1.15)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+@keyframes glow{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+@keyframes up{0%{opacity:0;transform:translate(-50%,10px)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-44px)}}
+.em{animation:bob 2s ease-in-out infinite}
+.stage{display:flex;justify-content:space-around;align-items:flex-end;height:170px;background:linear-gradient(var(--bg),var(--ln));border-radius:12px;margin-bottom:10px;overflow:hidden}
+.fig{position:relative;width:45%;text-align:center;transition:opacity .4s}.fig .sp{font-size:72px;line-height:1.1;animation:bob 1.6s ease-in-out infinite}.fig.o .sp{animation-name:bobf}
+.fig.m.atk{animation:lm .6s}.fig.o.atk{animation:lo .6s}.fig.hit{animation:shake .5s;filter:drop-shadow(0 0 10px #e04a4a)}.fig.stun{animation:shake .5s;filter:drop-shadow(0 0 10px #e0c020)}
+.fig.heal{animation:glow .7s;filter:drop-shadow(0 0 12px #2fa86a)}.fig.buff{animation:glow .7s;filter:drop-shadow(0 0 12px #2f7be0)}
+.fig.ko{opacity:.35;transform:rotate(80deg) translateY(20px)}.fig.ko .sp{animation:none}
+.pop{position:absolute;top:0;left:50%;font-weight:800;font-size:24px;color:#e04a4a;pointer-events:none;animation:up 1s forwards}.heal .pop{color:#2fa86a}
+.hab{position:relative;height:230px;border-radius:14px;overflow:hidden;background:linear-gradient(#bfe9ff,#9be37d 62%,#6cc35a);border:1px solid var(--ln);margin:10px 0 6px}
+.wp{position:absolute;left:0;top:0;width:48px;height:48px;cursor:pointer}.sp2{font-size:36px;line-height:48px;text-align:center;animation:bob .9s ease-in-out infinite}
+.wp.act .fl{filter:drop-shadow(0 0 6px gold) drop-shadow(0 0 2px gold)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.08)}}
+@keyframes tw{0%,100%{transform:scale(.6);opacity:.6}50%{transform:scale(1.2);opacity:1}}
+.ar .eyes{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite}.ar .tw{transform-box:fill-box;transform-origin:center;animation:tw 1.6s ease-in-out infinite}
+.em{width:64px;height:64px;flex:none;font-size:0}.fig .sp{display:flex;justify-content:center;line-height:0;font-size:0}.sp2{display:flex;justify-content:center;align-items:center;height:48px;font-size:0}
+.bf{position:relative;height:min(50vh,380px);border-radius:14px;overflow:hidden;background:linear-gradient(#bfe9ff,#9be37d 45%,#6cc35a);border:1px solid var(--ln);touch-action:none}
+.ent{position:absolute;left:0;top:0;will-change:transform}.ent svg{animation:bob .8s ease-in-out infinite}.ent .fl{line-height:0;font-size:0}
+.hud{position:absolute;left:8px;right:8px;top:6px;font:700 14px system-ui;color:#143;text-shadow:0 1px 0 #fff8;z-index:5}.hb{height:9px;background:#0003;border-radius:9px;overflow:hidden;margin-top:4px}.hb i{display:block;height:100%;width:100%;background:#2fa86a}
+.shot{position:absolute;border-radius:50%;will-change:transform}
+.fx{position:absolute;border:4px solid;border-radius:50%;animation:rg .5s forwards;pointer-events:none}@keyframes rg{from{transform:scale(.2);opacity:1}to{transform:scale(1);opacity:0}}
+.fpop{position:absolute;font-weight:800;font-size:16px;animation:up .8s forwards;pointer-events:none;z-index:6;text-shadow:0 1px 2px #0008;white-space:nowrap}
+.ctl{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:10px}
+.joy{width:130px;height:130px;border-radius:50%;background:var(--cd);border:3px solid var(--ln);position:relative;touch-action:none;flex:none}
+.knob{position:absolute;left:35px;top:35px;width:60px;height:60px;border-radius:50%;background:var(--ac);box-shadow:0 2px 8px #0006;pointer-events:none}
+.abs{display:flex;gap:12px}.abtn{width:76px;height:76px;border-radius:50%;font-size:32px;padding:0;position:relative;margin:0}.abtn span{position:absolute;right:8px;bottom:4px;font-size:14px}
+.abtn,.joy{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+nav{overflow-x:auto}nav button{flex:0 0 auto;min-width:68px;padding:10px 8px}
+.fs{position:fixed;left:0;top:0;right:0;bottom:0;z-index:1000;background:#6cc35a;touch-action:none;overflow:hidden}
+.fs .bf{position:absolute;left:0;top:0;right:0;bottom:0;height:auto;border-radius:0;border:0}
+.fs .joy{position:absolute;left:calc(20px + env(safe-area-inset-left,0px));bottom:calc(22px + env(safe-area-inset-bottom,0px));background:#ffffff55;border-color:#fff9;z-index:20}
+.fs .abs{position:absolute;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(22px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;flex-wrap:wrap-reverse;justify-content:flex-end;align-items:flex-end;gap:10px;max-width:62%}
+.abtn.jmp{width:88px;height:88px;background:#f5a623}
+.xbtn{position:absolute;right:calc(12px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));z-index:20;width:44px;height:44px;border-radius:50%;padding:0;background:#0008;font-size:18px}
+.fs .hud{top:calc(10px + env(safe-area-inset-top,0px));right:68px;left:calc(12px + env(safe-area-inset-left,0px))}
+.shadow{position:absolute;left:0;top:0;width:44px;height:14px;border-radius:50%;background:#0004}
+body{background:radial-gradient(900px 420px at 50% -80px,#d8ccff,transparent 70%),var(--bg);background-attachment:fixed}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body{background:radial-gradient(900px 420px at 50% -80px,#3a2d78,transparent 70%),var(--bg)}}
+:root[data-theme="dark"] body{background:radial-gradient(900px 420px at 50% -80px,#3a2d78,transparent 70%),var(--bg)}
+select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--ln);background:var(--bg);color:var(--tx);font:inherit;margin:6px 0}
+.chest{pointer-events:none}.chest svg{animation:bob 1s ease-in-out infinite;filter:drop-shadow(0 0 8px gold)}
+.deco{position:absolute;pointer-events:none;opacity:.9;line-height:1}
+.pots{position:absolute;left:calc(20px + env(safe-area-inset-left,0px));bottom:calc(170px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;z-index:20}
+.pbtn{width:52px;height:52px;border-radius:50%;font-size:24px;padding:0;position:relative;margin:0;background:#2b6cb0}.pbtn span{position:absolute;right:0;bottom:-2px;font-size:13px;background:#000a;border-radius:9px;padding:0 5px}
+.ent svg.r5{animation:bobmyth 1.6s ease-in-out infinite}
+@keyframes myth{from{filter:hue-rotate(0deg) drop-shadow(0 0 10px #ff3d9a)}to{filter:hue-rotate(360deg) drop-shadow(0 0 10px #ff3d9a)}}
+@keyframes bobmyth{0%,100%{transform:translateY(0);filter:hue-rotate(0deg) drop-shadow(0 0 10px #ff3d9a)}50%{transform:translateY(-8px);filter:hue-rotate(180deg) drop-shadow(0 0 10px #ff3d9a)}}
+.ar.r5{animation:myth 5s linear infinite}
+</style></head><body>
+<div class="top"><h2>🐾 QR Pets</h2><div class="coin">🪙 <span id="co"></span> <span id="ut"></span></div></div>
+<div id="v"><div class="card">Loading…</div></div><nav id="nv"></nav>
+<script>
+const R=[["Common","#8a8a9a"],["Uncommon","#2fa86a"],["Rare","#2f7be0"],["Epic","#a24ae0"],["Legendary","#d99a10"],["Mythical","#ff3d9a"]];
+const rar=i=>i<600?0:i<850?1:i<950?2:i<990?3:i<1000?4:5;
+const NA=["Fluffy","Shadow","Blaze","Frost","Mossy","Zappy","Tiny","Mighty","Sneaky","Golden"],NB=["Fox","Drake","Owl","Slime","Bear","Newt","Wolf","Moth","Crab","Bunny"],EM=["🦊","🐉","🦉","🟢","🐻","🦎","🐺","🦋","🦀","🐰"],TY=["🔥Fire","💧Water","🌿Leaf"];
+const AB=[{n:"Fireball",i:"🔥",d:"1.8x damage"},{n:"Heal",i:"💚",d:"Restore 30% HP"},{n:"Stun",i:"⚡",d:"Enemy skips a turn"},{n:"Shield",i:"🛡️",d:"Halve the next hit"},{n:"Poison",i:"☠️",d:"5 dmg for 3 turns"},{n:"Drain",i:"🧛",d:"Hit and heal half"}];
+const ARM=[{n:"Leather Vest",p:60,d:4},{n:"Iron Plate",p:200,d:10},{n:"Dragon Mail",p:600,d:22}];
+const ACC=[{n:"Speed Boots",p:50,a:2,s:3},{n:"Power Ring",p:150,a:7,s:0},{n:"Crown",p:500,a:14,s:5}];
+const TIERS=[["rare","Rare",[1,4,7]],["epic","Epic",[2,8,14]],["legend","Legendary",[4,16,28]],["myth","Mythical",[15,60,105]]],SIZES=[1,5,10];
+const LINKS={tip:"",rare1:"",rare5:"",rare10:"",epic1:"",epic5:"",epic10:"",legend1:"",legend5:"",legend10:"",myth1:"",myth5:"",myth10:""};
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>"&#"+c.charCodeAt(0)+";");
+const MYN=["Aurora Fox","Void Drake","Starlight Owl","Nova Slime","Eclipse Bear","Tidal Newt","Phantom Wolf","Celestial Moth","Prism Crab","Mirage Bunny","Solar Fox","Abyss Drake","Lunar Owl","Cosmic Slime","Ember Bear","Glacier Newt","Thunder Wolf","Dream Moth","Coral Crab","Spirit Bunny"];
+const spOf=i=>i>=1000?(i-1000)%10:Math.floor(i/10)%10;
+const pet=i=>{const r=rar(i),b=40+r*18;return{id:i,r,name:i>=1000?MYN[(i-1000)%20]:NA[i%10]+" "+NB[spOf(i)],em:EM[spOf(i)],t:i%3,hp:b*2+i*7%20,a:Math.round(b/2)+i*3%8,d:Math.round(b/4)+i%5,s:10+i*5%15,ab:r>=5?[i%6,(i+2)%6,(i+4)%6]:r>=3?[i%6,(i+3)%6]:[i%6]}};
+const hash=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
+const ok=c=>/^QRP-[A-Z0-9]{8}$/.test(c)&&hash("k7"+c)%61==3&&hash("m2"+c)%61==5;
+let S={coins:100,seen:[],pets:[],items:[],gear:{},act:null,wins:0,nick:"",daily:0},tab="scan",msg="",B=null,DB=null,UID=null,ARENA=[],aMsg="";
+try{const x=JSON.parse(localStorage.getItem("qrp")||"null");if(x)S={...S,...x}}catch(e){}
+const save=()=>{try{localStorage.setItem("qrp",JSON.stringify(S))}catch(e){}if(window.FB&&FB.on&&FB.user)FB.save(S)};
+const effG=(p,g)=>{g=g||{};const ar=ARM[g.ar]||{d:0},ac=ACC[g.ac]||{a:0,s:0};return{...p,a:p.a+ac.a,d:p.d+ar.d,s:p.s+ac.s}};
+
+function give(id,pre){S.pets.push(id);if(S.act==null)S.act=id;const p=pet(id);msg=`${pre}${art(id,56,1)} ${p.name} (#${id}) — ${R[p.r][0]}!`;save()}
+function daily(){const w=20*36e5-(Date.now()-(S.daily||0));if(w>0){msg=`⏳ Next free pet in about ${Math.ceil(w/36e5)}h`;return render()}
+let id,n=0;do{id=Math.floor(Math.random()*600)}while(S.pets.includes(id)&&++n<50);give(id,"🎁 Free daily pet: ");S.daily=Date.now();save();render()}
+const dm=(x,y)=>Math.max(1,Math.round(x.a*(x.t==(y.t+2)%3?1.3:x.t==(y.t+1)%3?.8:1)-y.d/2+Math.random()*4));
+const mk=p=>({p,hp:p.hp,max:p.hp,sh:0,stun:0,psn:0,cd:{}});
+function start(op,pvp){const me=eff(pet(S.act));B={m:mk(me),o:mk(op),log:[`${me.name} vs ${op.name}`],over:0,pvp,fx:{},pop:{}};tab="fight";render()}
+function pve(){const me=pet(S.act),mr=Math.min(4,me.r+(Math.random()<.3?1:0));let id;do{id=Math.floor(Math.random()*1000)}while(rar(id)>mr);const sc=.8+Math.random()*.3,o=pet(id);start({...o,hp:Math.round(o.hp*sc),a:Math.round(o.a*sc)},0)}
+function end(){B.over=1;const w=B.o.hp<=0&&B.m.hp>0,g=w?(B.pvp?30:10)+B.o.p.r*15+Math.floor(Math.random()*10):2;S.coins+=g;if(w&&B.pvp)S.wins++;
+B.log.push(w?`<span class=win>🏆 Victory! +${g} coins</span>`:`<span class=lose>💀 Defeat. +${g} coins</span>`);save();if(w&&B.pvp)pub()}
+function fightP(u){const x=ARENA.find(a=>a.uid==u);if(!x)return;const p=pet(Number(x.id)||0),o=effG(p,{ar:x.ar,ac:x.ac});o.name=`${String(x.nick).slice(0,16)}’s ${p.name}`;start(o,1)}
+function buy(k,i){const it=(k=="ar"?ARM:ACC)[i];if(S.coins<it.p){msg="Not enough coins";return render()}if(S.items.includes(k+i))return;S.coins-=it.p;S.items.push(k+i);save();msg="Bought "+it.n;render()}
+function eq(k,i){if(S.act==null)return;const g=S.gear[S.act]||(S.gear[S.act]={});g[k]=g[k]===i?undefined:i;save();render()}
+function setAct(i){S.act=i;save();render()}
+function iap(k){const u=LINKS[k];if(!u){alert("Coming soon!");return}window.open(u,"_blank")}
+function card(p,x){return `<div class=pet><div class=em>${art(p.id,64)}</div><div style="flex:1"><b>${esc(p.name)}</b> <span class=tag style="background:${R[p.r][1]}">${R[p.r][0]}</span><div class=mu>#${p.id} · ${TY[p.t]}</div><div class=mu>❤️${x.hp} ⚔️${x.a} 🛡️${x.d} ⚡${x.s}</div><div class=mu>${p.ab.map(i=>AB[i].i+AB[i].n).join(" · ")}</div><div class=mu>💰 Value ${value(p.id)}</div></div></div>`}
+const bar=(u,n)=>`<div class=row><b>${art(u.p.id,22)} ${esc(u.p.name)}</b><span class=mu>${Math.max(0,u.hp)}/${u.max}${u.sh?" 🛡️":""}${u.stun?" ⚡":""}${u.psn?" ☠️":""}</span></div><div class=bar><i style="width:${Math.max(0,u.hp)/u.max*100}%"></i></div>`;
+function render(){fixS();if(!window.FB){v.innerHTML="Loading…";return}document.getElementById("co").textContent=S.coins;document.getElementById("ut").innerHTML=FB.on&&FB.user?`<button class=s onclick="FB.out()">Log out</button>`:"";if(FB.on&&!FB.user){nv.innerHTML="";v.innerHTML=landing();return}if(FB.on&&FB.user&&!FB.loaded){nv.innerHTML="";v.innerHTML=loadErr?`<div class=card>⚠️ ${loadErr==1?"Could not load your saved game.":"Could not create your save."} This usually means the Firebase rules are not published yet, or you are offline. Nothing was changed.<br><button onclick="location.reload()">Try again</button> <button class=s onclick="FB.out()">Log out</button></div>`:`<div class=card>Loading your game…</div>`;return}
+const T={scan:"🎟️ Redeem",pets:"🐾 Pets",fight:"⚔️ Fight",brawl:"🕹️ Brawl",bag:"🎒 Bag",arena:"🌐 Arena",shop:"🛒 Shop",store:"💵 Store"};
+nv.innerHTML=Object.keys(T).map(k=>`<button class="${k==tab?"on":""}" onclick="tab='${k}';msg='';render()">${T[k]}</button>`).join("");
+if(tab=="brawl"&&G&&G.run)return;let h=msg?`<div class=card>${msg}</div>`:"";
+if(tab=="scan")h+=`<div class=card><b>Enter a code</b><div class=mu>Each code works once and gives you a pet. Buy codes in the Store tab.</div><input id=ci placeholder="QRP-XXXXXXXX" autocapitalize=characters><button onclick="scan(ci.value)">Redeem</button></div><div class=card><b>🎁 Free daily pet</b><div class=mu>Come back every day for a free pet.</div><button class=s onclick="daily()">Claim</button></div><div class=mu>Collected: ${new Set(S.pets).size}/1020 · Wins: ${S.wins}</div>`;
+if(tab=="pets")h+=habitat()+[...new Set(S.pets)].map(pet).map(p=>`<div class=card>${card(p,eff(p))}<div class=row><span class=mu>${S.gear[p.id]?`${(ARM[S.gear[p.id].ar]||{}).n||""} ${(ACC[S.gear[p.id].ac]||{}).n||""}`:"No gear"}</span><button class="${S.act==p.id?"":"s"}" onclick="setAct(${p.id})">${S.act==p.id?"Active":"Set active"}</button></div></div>`).join("");
+if(tab=="brawl")h+=brawlStart();if(tab=="fight"){if(!B)h+=`<div class=card>${card(pet(S.act),eff(pet(S.act)))}<button onclick="pve()">Find opponent</button><div class=mu>Win coins, then buy gear in the Shop. Use abilities (they recharge) to win.</div></div>`;
+else{h+=`<div class=card>${stage()}${bar(B.m)}${bar(B.o)}${B.over?`<button onclick="B=null;render()">Back</button><button class=s onclick="${B.pvp?"tab='arena';B=null;render()":"pve()"}">${B.pvp?"Arena":"Fight again"}</button>`:`<button onclick="turn('atk')" ${B.busy?"disabled":""}>⚔️ Attack</button><button class=s onclick="turn('def')" ${B.busy?"disabled":""}>🛡️ Defend</button>${B.m.p.ab.map(i=>`<button onclick="turn('ab',${i})" ${B.m.cd[i]>0||B.busy?"disabled":""}>${AB[i].i} ${AB[i].n}${B.m.cd[i]>0?" ("+B.m.cd[i]+")":""}</button>`).join("")}<div class=mu>${B.m.p.ab.map(i=>AB[i].n+": "+AB[i].d).join(" · ")}</div>`}</div><div class="card log">${B.log.slice(-8).reverse().join("<br>")}</div>`}}
+if(tab=="arena"){if(!FB.on)h+=`<div class=card><b>🌐 Online</b><div class=mu>Turn on accounts (see SETUP.md) to unlock the arena and the market.</div></div>`;
+else{h+=`<div>${[["board","🏆 Leaderboard"],["market","🏪 Market"],["duel","🤝 Duel"]].map(x=>`<button class="${sub2==x[0]?"":"s"}" onclick="sub2='${x[0]}';${x[0]=="market"?"mkRefresh();":""}render()">${x[1]}</button>`).join("")}</div>`;
+if(sub2=="duel")h+=duelHTML();else if(!FB.user.emailVerified)h+=verifyCard();else if(sub2=="market")h+=marketHTML();else{if(!arenaOn){arenaOn=1;refresh()}h+=`<div class=card><b>Your arena pet</b><input id=nk placeholder="Nickname" maxlength=16 value="${esc(S.nick)}" onchange="S.nick=this.value;save()"><button onclick="S.nick=nk.value;save();pub()">Join / update</button><button class=s onclick="refresh()">Refresh</button><div class=mu>${esc(aMsg)}</div></div><h3>🏆 Leaderboard</h3>`+
+(ARENA.length?ARENA.map(a=>{const p=pet(Number(a.id)||0),me=a.uid==FB.user.uid;return `<div class="card row"><div><b>${esc(a.nick)}${me?" (you)":""}</b><div class=mu>${art(p.id,22)} ${esc(p.name)} · ${R[p.r][0]} · ${Number(a.wins)||0} wins</div></div>${me?"":`<button onclick="fightP('${esc(a.uid)}')" ${S.act==null?"disabled":""}>Fight</button>`}</div>`}).join(""):`<div class=card>No players yet. Be the first!</div>`)}}}
+if(tab=="bag"){h+=`<div class=card><b>🧪 Potions</b>${PO.map((p,k)=>`<div class=row style="margin:6px 0"><span>${p.i} ${p.n} <span class=mu>${p.d}</span></span><b>×${S.pots[k]}</b></div>`).join("")}<div class=mu>Find potions in chests during Brawl, then use them in the fight.</div></div><h3>⚔️ Weapons</h3>`+(S.weapons.length?S.weapons.map(i=>`<div class="card row"><div><b>${W[i].i} ${W[i].n}</b> <span class=tag style="background:${R[W[i].r][1]}">${R[W[i].r][0]}</span><div class=mu>⚔️ +${W[i].a} attack</div></div><button class="${S.wp===i?"":"s"}" onclick="eqw(${i})">${S.wp===i?"Equipped":"Equip"}</button></div>`).join(""):`<div class=card>No weapons yet. Open chests in Brawl! 📦</div>`)}
+if(tab=="shop"){const row=(k,L)=>L.map((it,i)=>{const own=S.items.includes(k+i),on=S.act!=null&&(S.gear[S.act]||{})[k]===i;return `<div class="card row"><div><b>${it.n}</b><div class=mu>${k=="ar"?"🛡️+"+it.d:"⚔️+"+it.a+(it.s?" ⚡+"+it.s:"")}</div></div>${own?`<button class=s onclick="eq('${k}',${i})">${on?"Unequip":"Equip"}</button>`:`<button onclick="buy('${k}',${i})">🪙${it.p}</button>`}</div>`}).join("");
+h+=`<h3>Armor</h3>${row("ar",ARM)}<h3>Accessories</h3>${row("ac",ACC)}<div class=mu>Gear equips on your active pet.</div>`}
+if(tab=="store")h+=`<div class=card><b>Buy pet codes</b><div class=mu>Pay, then the seller sends you your code(s). Enter them on the Redeem tab. Bundles save up to 30%.</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet code</b><div>${SIZES.map((n,j)=>`<button onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")+`<div class=card><div class=row><span class=mu>Tip the creator ☕</span><button class=s onclick="iap('tip')">Tip</button></div></div>`;
+document.getElementById("v").innerHTML=h;if(tab=="pets")startHab()}
+const DEF=()=>({coins:100,seen:[],pets:[],items:[],gear:{},act:null,wins:0,nick:"",daily:0});
+async function scan(code){code=(code||"").trim().toUpperCase().replace(/\s+/g,"");if(!code)return;
+if(FB.on){msg="Checking…";render();const r=await FB.redeem(code);if(r==-2)msg="⚠️ Could not check the code. Try again.";else if(r<0)msg="❌ Invalid or already used code.";else{give(r,"🎉 You got ");return render()}return render()}
+if(!ok(code)){msg="❌ Invalid code. Check it and try again.";return render()}
+const h=String(hash(code));if(S.seen.includes(h)){msg="❌ This code was already used. Each code works once!";return render()}
+S.seen.push(h);give(hash(code)%1000,"🎉 You got ");render()}
+let arenaOn=0;function refresh(){FB.board().then(a=>{ARENA=a;if(tab=="arena")render()}).catch(()=>{aMsg="Arena offline"})}
+async function pub(){if(!FB.on||!FB.user||S.act==null)return;const g=S.gear[S.act]||{};try{await FB.pub({nick:S.nick||"Player",id:S.act,ar:g.ar==null?-1:g.ar,ac:g.ac==null?-1:g.ac,wins:S.wins,t:Date.now()});aMsg="✅ Arena pet saved";refresh()}catch(e){aMsg="Could not save"}if(tab=="arena")render()}
+async function doAuth(m){const e=em.value.trim(),p=pw.value;msg="";try{await(m=="up"?FB.signup(e,p):FB.login(e,p))}catch(x){const c=x.code||"";msg="❌ "+(c.includes("email-already")?"That email is already registered. Log in instead.":c.includes("weak")?"Password must be at least 6 characters.":c.includes("invalid-email")?"Enter a valid email.":/credential|password|user-not-found/.test(c)?"Wrong email or password.":"Something went wrong. Try again.");render()}}
+function landing(){return (msg?`<div class=card>${msg}</div>`:"")+`<div class=card><h2>Collect pets. Battle friends. 🐾</h2><div class=mu>Over 1,000 pets, powerful abilities, armor, and a live arena leaderboard. Free to play.</div></div>
+<div class=card><b>Sign up free</b><input id=em type=email placeholder="Email" autocomplete=email><input id=pw type=password placeholder="Password (6+ characters)" autocomplete=current-password><button onclick="doAuth('up')">Sign up</button><button class=s onclick="doAuth('in')">Log in</button><div class=mu>You get a free starter pet and a new free pet every day.</div></div>
+<div class=card><b>Why play</b><div class=mu>⚔️ Turn-based battles with 6 abilities<br>🛡️ Armor and accessories to buy<br>🌐 Fight other players in the Arena<br>🎟️ Rare, Epic and Legendary pet codes</div></div>`+TIERS.map(t=>`<div class=card><b>${t[1]} pet codes</b><div>${SIZES.map((n,j)=>`<button class=s onclick="iap('${t[0]}${n}')">${n==1?"1 code":n+"-pack"} · $${t[2][j]}</button>`).join("")}</div></div>`).join("")}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function act(s,k,i){const a=B[s],t=s=="m"?"o":"m",e=B[t],who=s=="m"?"You":"Enemy";
+const hit=m=>{let d=Math.round(dm(a.p,e.p)*m);if(e.sh){d=Math.ceil(d/2);e.sh=0}e.hp-=d;B.fx[s]="atk";B.fx[t]="hit";B.pop[t]="-"+d;return d};
+const heal=h=>{a.hp=Math.min(a.max,a.hp+h);B.fx[s]="heal";B.pop[s]="+"+h};
+if(k=="atk"){const d=hit(1);B.log.push(`${who} hit for ${d}`)}
+else if(k=="def"){a.sh=1;B.fx[s]="buff";B.log.push(`${who} braced for impact`)}
+else{const n=AB[i];a.cd[i]=4;let x=`${who} used ${n.i} ${n.n}`;
+if(i==0)x+=` for ${hit(1.8)}`;
+if(i==1){const h=Math.round(a.max*.3);heal(h);x+=` +${h} HP`}
+if(i==2){e.stun=1;B.fx[s]="atk";B.fx[t]="stun"}
+if(i==3){a.sh=1;B.fx[s]="buff"}
+if(i==4){e.psn=3;B.fx[s]="atk";B.fx[t]="stun"}
+if(i==5){const d=hit(1),h=Math.round(d/2);heal(h);B.fx[s]="atk";x+=` for ${d}, +${h} HP`}
+B.log.push(x)}}
+async function turn(k,i){if(!B||B.over||B.busy)return;B.busy=1;const m=B.m,o=B.o;B.fx={};B.pop={};
+if(m.stun){m.stun=0;B.log.push("You are stunned!")}else act("m",k,i);
+render();await sleep(800);if(!B)return;
+if(o.hp>0){B.fx={};B.pop={};if(o.stun){o.stun=0;B.log.push("Enemy is stunned!")}else{const av=o.p.ab.filter(x=>!(o.cd[x]>0));if(av.length&&Math.random()<.35)act("o","ab",av[Math.floor(Math.random()*av.length)]);else act("o",Math.random()<.15?"def":"atk")}render();await sleep(800);if(!B)return}
+B.fx={};B.pop={};
+for(const u of [m,o]){if(u.psn>0){u.psn--;u.hp-=5;B.log.push(`${u===m?"You take":"Enemy takes"} 5 poison`)}for(const x in u.cd)if(u.cd[x]>0)u.cd[x]--}
+if(m.hp<=0||o.hp<=0)end();B.busy=0;render()}
+function stage(b=B){const f=b.fx||{},p=b.pop||{};const fig=(u,s)=>`<div class="fig ${s} ${f[s]||""} ${u.hp<=0?"ko":""}"><span class=pop>${p[s]||""}</span><div class=sp>${art(u.p.id,100)}</div></div>`;return `<div class=stage>${fig(b.m,"m")}${fig(b.o,"o")}</div>`}
+function habitat(){const ids=[...new Set(S.pets)].slice(0,24);return `<div class=hab id=hab>${ids.map(i=>`<div class="wp${S.act==i?" act":""}" onclick="setAct(${i})"><div class=fl><div class=sp2>${art(i,44)}</div></div></div>`).join("")}</div><div class=mu style="margin-bottom:8px">Tap a pet to make it your active fighter.</div>`}
+let habT=0;function startHab(){const h=document.getElementById("hab");if(!h)return;const W=Math.max(60,h.clientWidth),H=Math.max(60,h.clientHeight),my=++habT;
+const ws=[...h.children].map(el=>{const x=Math.random()*(W-48),y=Math.random()*(H-48);return{el,x,y,tx:x,ty:y,w:Math.random()*60,s:.4+Math.random()*.5,f:1}});
+const step=()=>{if(my!=habT||!document.body.contains(h))return;for(const o of ws){if(o.w>0)o.w--;else{const dx=o.tx-o.x,dy=o.ty-o.y,d=Math.hypot(dx,dy);if(d<2){o.w=40+Math.random()*120;o.tx=Math.random()*(W-48);o.ty=Math.random()*(H-48)}else{o.x+=dx/d*o.s;o.y+=dy/d*o.s;if(Math.abs(dx)>1)o.f=dx<0?-1:1}}
+o.el.style.transform=`translate(${o.x}px,${o.y}px)`;o.el.firstChild.style.transform=`scaleX(${o.f})`}requestAnimationFrame(step)};step()}
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function art(id,px,inl){const r=rng(id*7919+13),p=pet(id),sp=spOf(id),h=Math.round([15,205,110][id%3]+r()*40-10),H2=(h+50)%360;
+const c1=`hsl(${h},68%,58%)`,c2=`hsl(${h},75%,82%)`,dk=`hsl(${h},55%,22%)`,ac=`hsl(${H2},75%,62%)`,sd=`hsl(${h},62%,46%)`;
+const K=`stroke="${dk}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"`;
+const F=(d,f)=>`<path d="${d}" fill="${f}" ${K}/>`,L=d=>`<path d="${d}" fill="none" ${K}/>`;
+const E=(x,y,a,b,f,rot)=>`<ellipse cx="${x}" cy="${y}" rx="${a}" ry="${b}" fill="${f}" ${K}${rot?` transform="rotate(${rot} ${x} ${y})"`:""}/>`;
+const C=(x,y,q,f)=>`<circle cx="${x}" cy="${y}" r="${q}" fill="${f}" ${K}/>`;
+const both=s=>s+`<g transform="translate(100 0) scale(-1 1)">${s}</g>`;
+const st=(x,y,c)=>`<path class="tw" d="M${x} ${y-4.5}L${x+1.3} ${y-1.3}L${x+4.5} ${y}L${x+1.3} ${y+1.3}L${x} ${y+4.5}L${x-1.3} ${y+1.3}L${x-4.5} ${y}L${x-1.3} ${y-1.3}Z" fill="${c}"/>`;
+let bk="",ft="",rx=30+r()*4,ry=26+r()*4,cy=62,feet=1;
+switch(sp){
+case 0:bk=both(F("M26 44L28 12L47 36Z",c1)+F("M31 38L30 21L41 34Z",ac))+F("M76 74Q100 66 94 40Q88 58 72 62Z",c1)+C(93,41,4,c2);break;
+case 1:bk=both(F("M34 40L26 14L46 34Z",c2)+F("M24 58L5 44L10 62L4 74L24 72Z",ac))+F("M76 76L98 82L78 86Z",sd);break;
+case 2:bk=both(F("M30 42L24 20L44 34Z",c1)+E(19,64,8,14,ac,-15));ft=F("M45 62L55 62L50 71Z","#f2b01e");rx=29;ry=31;cy=60;break;
+case 3:rx=35;ry=22;cy=66;feet=0;ft=both(C(30,91,4,c1));break;
+case 4:bk=both(C(27,40,11,c1)+C(27,40,5.5,ac));ft=E(50,69,12,9,c2)+E(50,65,3.5,2.5,dk);break;
+case 5:bk=both(F("M26 52L8 44L19 60Z",ac)+F("M25 66L6 66L21 74Z",ac))+F("M76 78Q99 82 95 58Q90 72 74 70Z",c1);break;
+case 6:bk=both(F("M25 46L27 10L47 38Z",c1)+F("M30 40L29 20L41 36Z",ac))+F("M76 74Q98 68 94 44Q84 60 72 62Z",c1);ft=E(50,69,13,9,c2)+E(50,65,4,3,dk);break;
+case 7:bk=both(E(17,50,15,22,ac,-20)+C(15,46,4,c2)+C(19,58,3,c2)+L("M42 38Q34 24 30 12")+C(30,11,3.5,ac));break;
+case 8:rx=34;ry=22;cy=64;feet=0;bk=both(L("M20 60L12 52")+F("M12 60Q3 50 8 40Q12 47 19 47Q18 53 12 60Z",ac)+L("M32 80L24 90M42 84L38 93")+L("M42 44L40 28"));ft=both(C(40,25,5,"#fff")+C(40,26,2.2,dk));break;
+case 9:bk=both(E(37,22,9,22,c1,-8)+E(37,24,4,15,ac,-8))+C(80,78,8,c2);break;}
+if(feet)bk+=both(E(37,cy+ry-1,8,4.5,sd));
+const v=Math.floor(r()*3),mk=Math.floor(r()*3),es=Math.floor(r()*4),ms=Math.floor(r()*3),ey=cy-4,my=cy+(sp==4||sp==6?10:7);
+const body=v==1&&sp!=2&&sp!=3&&sp!=8?`<rect x="${50-rx}" y="${cy-ry}" width="${2*rx}" height="${2*ry}" rx="20" fill="${c1}" ${K}/>`:E(50,cy,rx,ry,c1);
+const belly=`<ellipse cx="50" cy="${cy+9}" rx="${rx*.55}" ry="${ry*.5}" fill="${c2}" opacity=".85"/>`;
+let mark=mk==1?`<circle cx="36" cy="${cy-14}" r="3.5" fill="${sd}"/><circle cx="62" cy="${cy-18}" r="4" fill="${sd}"/><circle cx="68" cy="${cy-8}" r="2.5" fill="${sd}"/>`:mk==2?`<path d="M44 ${cy-ry+3}v8M50 ${cy-ry+2}v10M56 ${cy-ry+3}v8" stroke="${sd}" stroke-width="3" stroke-linecap="round"/>`:"";
+if(sp==3)mark+=`<ellipse cx="36" cy="${cy-10}" rx="7" ry="3.5" fill="#fff" opacity=".55" transform="rotate(-25 36 ${cy-10})"/>`;
+const hl=(x,y,q)=>`<circle cx="${x}" cy="${y}" r="${q}" fill="#fff"/>`,P=(a,b)=>`stroke="${dk}" stroke-width="3" stroke-linecap="round" fill="none" d="${a}${b}"`;
+let eyes=sp==2?C(38,ey,9,"#fff")+C(62,ey,9,"#fff")+`<circle cx="38" cy="${ey}" r="4" fill="${dk}"/><circle cx="62" cy="${ey}" r="4" fill="${dk}"/>`+hl(39.5,ey-1.5,1.4)+hl(63.5,ey-1.5,1.4)
+:es==0?`<circle cx="40" cy="${ey}" r="4.6" fill="${dk}"/><circle cx="60" cy="${ey}" r="4.6" fill="${dk}"/>`+hl(41.6,ey-1.8,1.6)+hl(61.6,ey-1.8,1.6)
+:es==1?`<path ${P("M35 "+(ey+1)+"Q40 "+(ey-6)+" 45 "+(ey+1),"M55 "+(ey+1)+"Q60 "+(ey-6)+" 65 "+(ey+1))}/>`
+:es==2?C(40,ey,6.5,"#fff")+C(60,ey,6.5,"#fff")+`<circle cx="41" cy="${ey}" r="3.6" fill="${dk}"/><circle cx="61" cy="${ey}" r="3.6" fill="${dk}"/>`+hl(42.4,ey-1.6,1.3)+hl(62.4,ey-1.6,1.3)
+:`<path ${P("M35 "+ey+"H45","M55 "+ey+"H65")}/>`;
+const mouth=sp==2?"":ms==0?`<path d="M44 ${my}Q50 ${my+6} 56 ${my}" fill="none" stroke="${dk}" stroke-width="2.6" stroke-linecap="round"/>`:ms==1?`<path d="M44 ${my}Q50 ${my+11} 56 ${my}Z" fill="#7a2030" ${K}/>`:`<path d="M43 ${my}Q46.5 ${my+5} 50 ${my}Q53.5 ${my+5} 57 ${my}" fill="none" stroke="${dk}" stroke-width="2.6" stroke-linecap="round"/>`;
+const cheeks=`<circle cx="30" cy="${ey+8}" r="4" fill="#ff7a9c" opacity=".45"/><circle cx="70" cy="${ey+8}" r="4" fill="#ff7a9c" opacity=".45"/>`;
+let x="";const q=p.r;
+if(q==1)x=F("M68 37L60 31L60 43Z","#ff5c8a")+F("M68 37L76 31L76 43Z","#ff5c8a")+C(68,37,3,"#ff9db8");
+if(q==2)x=F("M50 36L55 42L50 48L45 42Z","#4aa8ff");
+if(q==3)x=`<ellipse cx="50" cy="11" rx="15" ry="4.5" fill="none" stroke="#d58bff" stroke-width="3.5"/>`+st(14,22,"#d58bff")+st(88,30,"#d58bff");
+if(q==5)x=`<ellipse cx="50" cy="9" rx="16" ry="5" fill="none" stroke="#ff8ad8" stroke-width="3.5"/>`+F("M33 40L35 24L43 33L50 18L57 33L65 24L67 40Z","#ff5cc8")+C(50,30,3,"#fff")+st(10,18,"#ff8ad8")+st(90,22,"#8ad8ff")+st(14,82,"#ffe58a")+st(86,86,"#ff8ad8")+st(76,8,"#fff");
+if(q==4)x=F("M35 40L37 25L44 33L50 21L56 33L63 25L65 40Z","#ffd23f")+st(12,20,"#ffd23f")+st(90,26,"#ffd23f")+st(84,92,"#ffd23f");
+const sty=px<30||inl?"display:inline-block;vertical-align:middle":"display:block";
+return `<svg class="ar r${q}" viewBox="0 0 100 100" width="${px}" height="${px}" style="${sty}${q>=2?`;filter:drop-shadow(0 0 ${q*2}px ${R[q][1]})`:""}">${bk}${body}${belly}${mark}<g class="eyes" style="animation-delay:-${id%5}s">${eyes}</g>${mouth}${cheeks}${ft}${x}</svg>`}
+const W=[{n:"Wooden Sword",r:0,a:3,i:"🗡️"},{n:"Iron Blade",r:1,a:7,i:"⚔️"},{n:"Fire Staff",r:2,a:12,i:"🔥"},{n:"Frost Bow",r:2,a:12,i:"🏹"},{n:"Thunder Hammer",r:3,a:20,i:"🔨"},{n:"Dragon Fang",r:3,a:22,i:"🦷"},{n:"Starlight Wand",r:4,a:34,i:"🪄"},{n:"Sun Blade",r:4,a:38,i:"☀️"}];
+const PO=[{n:"Health Potion",i:"🧪",d:"Heal 50%"},{n:"Rage Potion",i:"💢",d:"+60% damage, 8s"},{n:"Speed Potion",i:"💨",d:"+50% speed, 8s"}];
+const BIO=[{n:"Meadow",bg:"linear-gradient(#bfe9ff,#9be37d 42%,#6cc35a)",d:["🌳","🌷","🪨","🌼","🍄"]},{n:"Sunny Desert",bg:"linear-gradient(#ffe2a8,#f3c978 40%,#e0a851)",d:["🌵","🪨","🦴","🌵"]},{n:"Frozen Peaks",bg:"linear-gradient(#dff1ff,#f4fbff 42%,#cfe6f5)",d:["🌲","⛄","❄️","🪨"]},{n:"Lava Land",bg:"linear-gradient(#4a1010,#7a2410 42%,#3a0c0c)",d:["🌋","🔥","🪨","💀"]},{n:"Moon Forest",bg:"linear-gradient(#0b1030,#1d2a5a 42%,#102a2a)",d:["🌲","🍄","✨","🌙","🪨"]}];
+const value=id=>{const p=pet(id);return Math.round([12,40,150,520,1800,6000][p.r]*(1+(p.hp+p.a*2+p.d+p.s)/500))};
+const eff=p=>{const x=effG(p,S.gear[p.id]),w=W[S.wp];return w?{...x,a:x.a+w.a}:x};
+function fixS(){if(!S.weapons)S.weapons=[];if(!S.pots)S.pots=[0,0,0];if(S.wp===undefined)S.wp=null}
+function eqw(i){S.wp=S.wp===i?null:i;save();render()}
+function chest(t){const c=[["#a9692b","#7a461a","#d9a441"],["#aab4c4","#6d7a8f","#e8eef8"],["#f5c542","#b8860b","#fff3b0"]][t];return `<svg viewBox="0 0 64 56" width="44" height="40"><rect x="6" y="22" width="52" height="30" rx="4" fill="${c[0]}" stroke="${c[1]}" stroke-width="3"/><path d="M6 24Q6 6 32 6Q58 6 58 24Z" fill="${c[0]}" stroke="${c[1]}" stroke-width="3"/><rect x="28" y="24" width="8" height="12" rx="2" fill="${c[2]}" stroke="${c[1]}" stroke-width="2"/><path class="tw" d="M54 6l2 4 4 2-4 2-2 4-2-4-4-2 4-2z" fill="${c[2]}"/></svg>`}
+function spawnChest(x,y,t){const g=G,d=document.createElement("div");d.className="ent chest";d.style.width="44px";d.style.height="40px";d.innerHTML=chest(t);d.style.transform=`translate(${x-22}px,${y-20}px)`;d.style.zIndex=Math.round(y);g.bf.appendChild(d);g.ch.push({x,y,t,el:d})}
+function openChest(c){const g=G;c.el.remove();ring(c.x,c.y,50,"#ffd23f");const t=c.t,r=Math.random();
+if(r<.5){const k=Math.random()<.6?0:Math.random()<.65?1:2,n=t>0?2:1;S.pots[k]+=n;pop(c.x,c.y-30,`${PO[k].i} +${n} ${PO[k].n}`,"#5bd6ff")}
+else if(r<.88){const wt=[[60,30,10,0,0],[20,40,30,9,1],[0,20,40,30,10]][t];let x=Math.random()*100,q=0;while(q<4&&x>=wt[q]){x-=wt[q];q++}
+const L=W.map((w,i)=>i).filter(i=>W[i].r==q),i=L[Math.floor(Math.random()*L.length)];
+if(S.weapons.includes(i)){const cc=20*(q+1);S.coins+=cc;g.coins+=cc;pop(c.x,c.y-30,`Duplicate ${W[i].n} → +${cc}🪙`,"#d99a10")}
+else{S.weapons.push(i);if(S.wp==null||W[i].a>W[S.wp].a)S.wp=i;g.me=eff(pet(S.act));pop(c.x,c.y-30,`${W[i].i} ${W[i].n}! (${R[q][0]})`,R[q][1])}}
+else{const cc=15+Math.round(Math.random()*20*(t+1));S.coins+=cc;g.coins+=cc;pop(c.x,c.y-30,"+"+cc+" 🪙","#d99a10")}
+save()}
+function usePot(k){const g=G;if(!g||!g.run||!(S.pots[k]>0))return;S.pots[k]--;
+if(k==0){const h=Math.round(g.max*.5);g.hp=Math.min(g.max,g.hp+h);pop(g.x,g.y-50,"+"+h,"#2fa86a");ring(g.x,g.y,70,"#2fa86a")}
+if(k==1){g.rage=8;ring(g.x,g.y,70,"#e0463a")}if(k==2){g.spd=8;ring(g.x,g.y,70,"#5bd6ff")}save()}
+function setBiome(i){const g=G;g.bio=i;const b=BIO[i%BIO.length];g.bf.style.background=b.bg;for(const d of g.deco)d.remove();g.deco=[];
+for(let k=0;k<16;k++){const d=document.createElement("div"),y=Math.random()*(g.H-30);d.className="deco";d.textContent=b.d[k%b.d.length];d.style.left=Math.random()*(g.W-30)+"px";d.style.top=y+"px";d.style.fontSize=(16+Math.random()*22)+"px";d.style.zIndex=Math.round(y);g.bf.appendChild(d);g.deco.push(d)}}
+let sub2="board",MK=[],mkMsg="";
+function marketHTML(){const mine=[...new Set(S.pets)];
+return `<div class=card><b>Sell a pet</b><select id=sp onchange="sprice.value=value(+this.value)">${mine.map(i=>`<option value=${i}>${esc(pet(i).name)} (#${i}) · value ${value(i)}</option>`).join("")}</select><input id=sprice type=number min=1 placeholder="Price in coins" value="${mine.length?value(mine[0]):""}"><button onclick="mkList()">List for sale</button><div class=mu>Your pet is held safely while listed. When it sells, the coins arrive the next time you open the market.</div></div><div class=mu>${esc(mkMsg)}</div><h3>For sale</h3>`+(MK.length?MK.map(m=>{const p=pet(Number(m.pet)||0),me=m.seller==FB.user.uid;return `<div class="card pet">${art(p.id,48)}<div style="flex:1"><b>${esc(p.name)}</b> <span class=tag style="background:${R[p.r][1]}">${R[p.r][0]}</span><div class=mu>by ${esc(m.nick)} · value ${value(p.id)}</div></div>${me?`<button class=s onclick="mkCancel('${esc(m.id)}')">Cancel</button>`:`<button onclick="mkBuy('${esc(m.id)}')" ${S.coins<m.price?"disabled":""}>🪙${Number(m.price)}</button>`}</div>`}).join(""):`<div class=card>Nothing for sale yet.</div>`)}
+async function mkList(){const id=+document.getElementById("sp").value,pr=Math.min(1e6,Math.max(1,Math.round(+document.getElementById("sprice").value||value(id))));
+if(S.pets.length<=1){mkMsg="Keep at least one pet.";return render()}if(!S.pets.includes(id))return;
+try{await FB.list({pet:id,price:pr,nick:S.nick||"Player"});S.pets.splice(S.pets.indexOf(id),1);if(!S.pets.includes(id)){if(S.act==id)S.act=S.pets[0];delete S.gear[id]}save();mkMsg=`Listed ${pet(id).name} for 🪙${pr}`;mkRefresh()}catch(e){mkMsg="Could not list ("+((e&&e.code)||"error")+"). If it says permission-denied, log out and log in again."}render()}
+async function mkBuy(id){const m=MK.find(x=>x.id==id);if(!m||S.coins<m.price)return;try{const ok=await FB.buy(m);if(ok){S.coins-=m.price;give(Number(m.pet),"🛒 Bought ");mkMsg="Purchase complete!"}else mkMsg="Too slow! Someone else bought it."}catch(e){mkMsg="Purchase failed ("+((e&&e.code)||"error")+")."}mkRefresh();render()}
+async function mkCancel(id){const m=MK.find(x=>x.id==id);if(!m)return;try{const ok=await FB.cancel(id);if(ok){S.pets.push(Number(m.pet));save();mkMsg="Your pet is back."}else mkMsg="Already sold!"}catch(e){mkMsg="Could not cancel."}mkRefresh();render()}
+function mkRefresh(){claimCredits();FB.market().then(a=>{MK=a;if(tab=="arena")render()}).catch(()=>{mkMsg="Market offline. Check your Firebase rules."})}
+function claimCredits(){FB.claim().then(r=>{if(r.n>0){S.coins+=r.n;save();mkMsg=`💰 Your pets sold! +${r.n} coins`;render()}}).catch(()=>{})}
+let G=null;const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),TCOL=["#ff6a3d","#3da8ff","#5bd65b"],CD=[5,8,7,9,7,5];
+const gd=e=>Math.hypot(e.x-G.x,e.y-G.y);
+function near(r){let b=null,bd=r;for(const e of G.en){if(e.dead)continue;const d=gd(e);if(d<bd){bd=d;b=e}}return b}
+function mkEnt(id,px){const d=document.createElement("div");d.className="ent";d.style.width=d.style.height=px+"px";d.innerHTML=`<div class=fl>${art(id,px)}</div>`;G.bf.appendChild(d);return d}
+function fxEl(cls,x,y,w,css,ms){const d=document.createElement("div");d.className=cls;d.style.left=x+"px";d.style.top=y+"px";if(w)d.style.width=d.style.height=w+"px";if(css)d.style.cssText+=css;G.bf.appendChild(d);setTimeout(()=>d.remove(),ms);return d}
+const ring=(x,y,r,c)=>fxEl("fx",x-r,y-r,r*2,`border-color:${c}`,500);
+const pop=(x,y,t,c)=>{const d=fxEl("fpop",x,y,0,`color:${c}`,800);d.textContent=t};
+function brawlStart(){const l=G&&G.last;return `<div class=card>${S.act==null?"Get a pet first.":card(pet(S.act),eff(pet(S.act)))}<div class=mu>Full-screen fight! Drag the joystick to move and tap ⬆️ to jump. Jumping dodges hits and slams enemies when you land. Grab chests for weapons and potions! Your pet shoots by itself, so use abilities to survive. Every kill earns coins!<br>Best wave: ${S.best||0}</div>${l?`<div class=win>Last run: wave ${l.wave} · ${l.kills} kills · +${l.coins} coins</div>`:""}<button onclick="brawl()" ${S.act==null?"disabled":""}>▶ Start</button></div>`}
+function brawl(){const me=eff(pet(S.act));msg="";
+const fs=document.createElement("div");fs.id="fs";fs.className="fs";
+fs.innerHTML=`<div class=bf id=bf></div><button class=xbtn id=xit>✕</button><div class=joy id=joy><div class=knob id=knob></div></div><div class=abs>${me.ab.map(i=>`<button class=abtn id="ab${i}">${AB[i].i}<span></span></button>`).join("")}<button class="abtn jmp" id=jmp>⬆️</button></div><div class=pots>${PO.map((p,k)=>`<button class=pbtn id="po${k}">${p.i}<span></span></button>`).join("")}</div>`;
+document.body.appendChild(fs);
+try{const r=document.documentElement,f=r&&(r.requestFullscreen||r.webkitRequestFullscreen);if(f){const p=f.call(r);if(p&&p.catch)p.catch(()=>{})}}catch(e){}
+const bf=document.getElementById("bf"),W=bf.clientWidth||360,H=bf.clientHeight||640;
+G={run:1,me,hp:me.hp,max:me.hp,x:W/2,y:H/2,face:1,en:[],sh:[],wave:0,kills:0,coins:0,inv:0,hurt:0,atk:0,cd:{},jx:0,jy:0,keys:{},W,H,bf,last:G&&G.last,lt:0,wait:0,z:0,vz:0,ch:[],deco:[],off:Math.floor(Math.random()*5),rage:0,spd:0,bio:0};
+G.hud=document.createElement("div");G.hud.className="hud";G.hud.innerHTML=`<span id=ht></span><div class=hb><i id=hf></i></div>`;bf.appendChild(G.hud);
+G.shd=document.createElement("div");G.shd.className="shadow";G.bf.appendChild(G.shd);G.pl=mkEnt(me.id,56);
+for(const i of me.ab)document.getElementById("ab"+i).addEventListener("pointerdown",e=>{e.preventDefault();useAb(i)});
+document.getElementById("jmp").addEventListener("pointerdown",e=>{e.preventDefault();jump()});
+document.getElementById("xit").addEventListener("pointerdown",e=>{e.preventDefault();endBrawl()});
+for(let k=0;k<3;k++)document.getElementById("po"+k).addEventListener("pointerdown",e=>{e.preventDefault();usePot(k)});
+const joy=document.getElementById("joy"),knob=document.getElementById("knob");let pid=null;
+const mv=e=>{const r=joy.getBoundingClientRect(),R=r.width/2;let dx=e.clientX-(r.left+R),dy=e.clientY-(r.top+R);const m=Math.hypot(dx,dy);if(m>R){dx=dx/m*R;dy=dy/m*R}G.jx=dx/R;G.jy=dy/R;knob.style.transform=`translate(${dx}px,${dy}px)`};
+joy.addEventListener("pointerdown",e=>{e.preventDefault();pid=e.pointerId;try{joy.setPointerCapture(pid)}catch(x){}mv(e)});
+joy.addEventListener("pointermove",e=>{if(e.pointerId==pid)mv(e)});
+const up=e=>{if(e.pointerId==pid){pid=null;G.jx=G.jy=0;knob.style.transform=""}};joy.addEventListener("pointerup",up);joy.addEventListener("pointercancel",up);
+requestAnimationFrame(loop)}
+function spawn(){G.wave++;if((G.wave-1)%3==0){setBiome(G.off+Math.floor((G.wave-1)/3));if(G.wave>1)pop(G.W/2,G.H/3,BIO[G.bio%BIO.length].n+"!","#fff")}const n=Math.min(2+G.wave,12);for(let k=0;k<n;k++){const s=Math.floor(Math.random()*4),x=s==0?-20:s==1?G.W+20:Math.random()*G.W,y=s==2?-20:s==3?G.H+20:Math.random()*G.H,id=Math.floor(Math.random()*(G.wave>4?850:600)),hp=28+G.wave*12;G.en.push({id,x,y,hp,sp:48+G.wave*3+Math.random()*18,st:0,ps:0,atk:.5,fl:1,r:rar(id),el:mkEnt(id,46)})}}
+function shoot(tx,ty,dmg,rad,col,big){dmg*=G.rage>0?1.6:1;const g=G,dx=tx-g.x,dy=ty-g.y,d=Math.hypot(dx,dy)||1,el=fxEl("shot",0,0,rad*2,`background:${col};box-shadow:0 0 ${rad}px ${col}`,1400);g.sh.push({x:g.x,y:g.y,vx:dx/d*(big?340:430),vy:dy/d*(big?340:430),dmg,r:rad,el,life:1.3})}
+function hitE(e,d){d=Math.round(d*(.9+Math.random()*.2));e.hp-=d;pop(e.x,e.y-26,"-"+d,"#e04a4a");e.el.style.filter="brightness(2)";setTimeout(()=>{e.el.style.filter=""},90);if(e.hp<=0)killE(e)}
+function killE(e){if(e.dead)return;e.dead=1;e.el.remove();const g=G,c=2+e.r+Math.floor(g.wave/3);g.kills++;g.coins+=c;S.coins+=c;pop(e.x,e.y-20,"+"+c+"🪙","#d99a10");if(Math.random()<.07)spawnChest(e.x,e.y,Math.random()<.85?0:1);if(!g.en.some(x=>!x.dead))g.wait=1.5}
+function useAb(i){const g=G;if(!g||!g.run||g.cd[i]>0)return;g.cd[i]=CD[i];const me=g.me;
+if(i==0){const t=near(420);shoot(t?t.x:g.x+g.face*100,t?t.y:g.y,me.a*2.4,16,"#ff4d2e",1)}
+if(i==1){const h=Math.round(g.max*.35);g.hp=Math.min(g.max,g.hp+h);pop(g.x,g.y-50,"+"+h,"#2fa86a");ring(g.x,g.y,90,"#2fa86a")}
+if(i==2){ring(g.x,g.y,170,"#e0c020");for(const e of g.en)if(gd(e)<170)e.st=2.2}
+if(i==3){g.inv=3.5;ring(g.x,g.y,60,"#4aa8ff")}
+if(i==4){ring(g.x,g.y,200,"#9a4ae0");for(const e of g.en)if(gd(e)<200)e.ps=4}
+if(i==5){const t=near(240);if(t){hitE(t,me.a*1.8);const h=Math.round(me.a*.9);g.hp=Math.min(g.max,g.hp+h);pop(g.x,g.y-50,"+"+h,"#2fa86a");ring(t.x,t.y,40,"#d33a6a")}else g.cd[i]=0}}
+function loop(ts){const g=G;if(!g||!g.run)return;if(tab!="brawl"){g.run=0;closeFs();return}
+const dt=Math.min(.05,(ts-(g.lt||ts))/1000),me=g.me,k=g.keys;g.lt=ts;
+let jx=g.jx+((k.arrowright||k.d)?1:0)-((k.arrowleft||k.a)?1:0),jy=g.jy+((k.arrowdown||k.s)?1:0)-((k.arrowup||k.w)?1:0);const m=Math.hypot(jx,jy);if(m>1){jx/=m;jy/=m}
+const sp=(130+me.s*3)*(g.z>0?1.3:1)*(g.spd>0?1.5:1);g.x=cl(g.x+jx*sp*dt,24,g.W-24);g.y=cl(g.y+jy*sp*dt,40,g.H-24);if(Math.abs(jx)>.15)g.face=jx<0?-1:1;
+if(g.vz>0||g.z>0){g.vz-=1500*dt;g.z+=g.vz*dt;if(g.z<=0){g.z=0;if(g.vz<-250){ring(g.x,g.y,80,"#f5c542");for(const e of g.en)if(!e.dead&&gd(e)<80){e.st=Math.max(e.st,.7);hitE(e,me.a)}}g.vz=0}}
+g.inv=Math.max(0,g.inv-dt);g.rage=Math.max(0,g.rage-dt);g.spd=Math.max(0,g.spd-dt);g.hurt=Math.max(0,g.hurt-dt);g.atk-=dt;for(const i in g.cd)g.cd[i]=Math.max(0,g.cd[i]-dt);
+if(!g.en.length){g.wait-=dt;if(g.wait<=0){if(g.wave>0){const b=10*g.wave;S.coins+=b;g.coins+=b;pop(g.x,g.y-60,"Wave clear +"+b+"🪙","#d99a10");save();spawnChest(40+Math.random()*(g.W-80),60+Math.random()*(g.H-120),g.wave%5==0||Math.random()<.3?2:1)}spawn();g.wait=0}}
+if(g.atk<=0){const t=near(300);if(t){g.atk=.55;shoot(t.x,t.y,me.a*.8,9,TCOL[me.t])}}
+for(const s of g.sh){s.x+=s.vx*dt;s.y+=s.vy*dt;s.life-=dt;for(const e of g.en){if(!e.dead&&Math.hypot(e.x-s.x,e.y-s.y)<s.r+20){hitE(e,s.dmg);s.life=0;break}}if(s.x<-30||s.y<-30||s.x>g.W+30||s.y>g.H+30)s.life=0;if(s.life<=0)s.el.remove();else s.el.style.transform=`translate(${s.x-s.r}px,${s.y-s.r}px)`}
+g.sh=g.sh.filter(s=>s.life>0);
+for(const e of g.en){if(e.dead)continue;if(e.ps>0){e.ps-=dt;e.hp-=8*dt;if(e.hp<=0){killE(e);continue}}
+if(e.st>0)e.st-=dt;else{const dx=g.x-e.x,dy=g.y-e.y,d=Math.hypot(dx,dy)||1;if(d>30){e.x+=dx/d*e.sp*dt;e.y+=dy/d*e.sp*dt}e.fl=dx<0?-1:1;e.atk-=dt;if(d<36&&e.atk<=0&&g.z<14){e.atk=.85;if(g.inv<=0){const dm=Math.max(1,Math.round(4+g.wave*1.3-me.d/4));g.hp-=dm;g.hurt=.15;pop(g.x,g.y-40,"-"+dm,"#ff8a3d")}}}
+e.el.style.transform=`translate(${e.x-23}px,${e.y-23}px)`;e.el.firstChild.style.transform=`scaleX(${e.fl})`;e.el.style.opacity=e.st>0?.6:1;e.el.style.zIndex=Math.round(e.y)}
+g.en=g.en.filter(e=>!e.dead);
+for(const c of g.ch){if(Math.hypot(c.x-g.x,c.y-g.y)<44){c.got=1;openChest(c)}}g.ch=g.ch.filter(c=>!c.got);
+g.pl.style.transform=`translate(${g.x-28}px,${g.y-28-g.z}px)`;g.pl.style.zIndex=Math.round(g.y);g.shd.style.transform=`translate(${g.x-22}px,${g.y+14}px) scale(${1-Math.min(.5,g.z/220)})`;g.pl.firstChild.style.transform=`scaleX(${g.face})`;g.pl.style.filter=g.inv>0?"drop-shadow(0 0 10px #4aa8ff)":g.hurt>0?"brightness(1.8)":"";
+document.getElementById("ht").textContent=`Wave ${g.wave} · ${g.kills} kills · 🪙${g.coins}${g.rage>0?" 💢"+Math.ceil(g.rage):""}${g.spd>0?" 💨"+Math.ceil(g.spd):""}`;document.getElementById("hf").style.width=Math.max(0,g.hp/g.max*100)+"%";document.getElementById("co").textContent=S.coins;
+for(const i of me.ab){const b=document.getElementById("ab"+i),c=g.cd[i]||0;if(b){b.disabled=c>0;b.lastChild.textContent=c>0?Math.ceil(c):""}}
+for(let k=0;k<3;k++){const b=document.getElementById("po"+k);if(b){b.disabled=!(S.pots[k]>0);b.lastChild.textContent=S.pots[k]||""}}
+if(g.hp<=0){endBrawl();return}
+requestAnimationFrame(loop)}
+addEventListener("keydown",e=>{if(G&&G.run){const k=e.key.toLowerCase();G.keys[k]=1;if(k=="1"||k=="2"){const i=G.me.ab[+k-1];if(i!=null)useAb(i)}if(k==" ")jump();if(k.startsWith("arrow")||k==" ")e.preventDefault()}});
+addEventListener("keyup",e=>{if(G)G.keys[e.key.toLowerCase()]=0});
+function jump(){const g=G;if(g&&g.run&&g.z<=0&&g.vz<=0){g.vz=540;ring(g.x,g.y+10,28,"#fff")}}
+function closeFs(){const f=document.getElementById("fs");if(f)f.remove();try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen()}catch(e){}}
+function endBrawl(){const g=G;if(!g)return;g.run=0;S.best=Math.max(S.best||0,g.wave);g.last={wave:g.wave,kills:g.kills,coins:g.coins};save();closeFs();render()}
+addEventListener("resize",()=>{if(G&&G.run&&G.bf){G.W=G.bf.clientWidth||G.W;G.H=G.bf.clientHeight||G.H}});
+let DU=null,duMsg="",loadErr=0;
+const ucode=()=>{const a="ABCDEFGHJKLMNPQRSTUVWXYZ";let c="";for(let i=0;i<4;i++)c+=a[Math.floor(Math.random()*a.length)];return c};
+const myStats=()=>{const p=eff(pet(S.act));return{id:p.id,hp:p.hp,a:p.a,d:p.d,s:p.s}};
+const unit=p=>({hp:p.hp,max:p.hp,sh:0,stun:0,psn:0,cd:{}});
+const cs=(x,m)=>Math.max(1,Math.min(m,Math.floor(+x)||1));
+function dPet(x,nick){const b=pet(Math.max(0,Math.min(1019,Math.floor(+x.id)||0)));return{...b,hp:cs(x.hp,2500),a:cs(x.a,400),d:cs(x.d,200),s:cs(x.s,100),name:nick?`${String(nick).slice(0,14)}’s ${b.name}`:b.name}}
+function clean(d){const n=(x,m)=>Math.max(0,Math.min(m,Math.floor(+x)||0)),o={...DEF(),...d};o.coins=n(o.coins,2e6);o.wins=n(o.wins,1e5);o.best=n(o.best,500);o.daily=n(o.daily,4e12);
+o.pets=(Array.isArray(o.pets)?o.pets:[]).map(x=>Math.floor(+x)).filter(x=>x>=0&&x<1020).slice(0,1000);
+o.weapons=(Array.isArray(o.weapons)?o.weapons:[]).filter(i=>Number.isInteger(i)&&i>=0&&i<W.length);
+o.pots=[0,1,2].map(k=>n((Array.isArray(o.pots)?o.pots:[])[k],999));o.seen=Array.isArray(o.seen)?o.seen.slice(0,5000):[];o.items=Array.isArray(o.items)?o.items:[];o.gear=o.gear&&typeof o.gear=="object"?o.gear:{};
+o.nick=String(o.nick||"").slice(0,16);if(!o.pets.includes(o.act))o.act=o.pets.length?o.pets[0]:null;if(o.wp!=null&&!o.weapons.includes(o.wp))o.wp=null;return o}
+async function onUser(u,d,err){
+if(!FB.on){if(!S.pets.length)give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");tab="scan";B=null;arenaOn=0;render();return}
+FB.loaded=false;if(DU)duelClose();
+if(!u){S=clean({});loadErr=0;render();return}
+if(err){S=clean({});loadErr=1;render();return}
+loadErr=0;render();
+if(d){S=clean(d);if(!S.started&&!S.pets.length)give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");S.started=true;if(!d.started){const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}}
+else{S=clean({});give(Math.floor(Math.random()*600),"👋 Welcome! Your starter pet: ");S.started=true;const ok=await FB.create(S);if(!ok){loadErr=2;render();return}}
+FB.loaded=true;tab="scan";B=null;arenaOn=0;render();claimCredits()}
+function verifyCard(){return `<div class=card><b>📧 Verify your email</b><div class=mu>To keep the game fair, trading and the leaderboard need a verified email. We sent a link to ${esc(FB.user.email)}. Open it, then tap the button below.</div><button onclick="doVerified()">I verified it</button><button class=s onclick="resend()">Resend email</button><div class=mu>${esc(mkMsg)}</div></div>`}
+async function doVerified(){try{await FB.reload();mkMsg=FB.user.emailVerified?"✅ Verified!":"Not verified yet. Check your inbox and spam."}catch(e){mkMsg="Try again in a moment."}render()}
+async function resend(){try{await FB.resend();mkMsg="Email sent. Check your spam folder too."}catch(e){mkMsg="Wait a minute and try again."}render()}
+async function duelCreate(){if(S.act==null)return;const code=ucode(),me=myStats();
+try{await FB.roomSet(code,{host:FB.user.uid,hn:S.nick||"Player",guest:null,gn:"",hp:me,gp:null,st:"wait",turn:"h",u:{h:unit(me),g:null},log:[],fx:{h:"",g:""},pop:{h:"",g:""},n:0,win:"",t:Date.now()});duelAttach(code,"h")}catch(e){duMsg="Could not create the room. Check your Firebase rules."}render()}
+async function duelJoin(c){c=(c||"").trim().toUpperCase();if(c.length!=4||S.act==null){duMsg="Type the 4-letter code.";return render()}const me=myStats(),nn=S.nick||"Player";
+try{const r=await FB.roomJoin(c,d=>({guest:FB.user.uid,gn:nn,gp:me,st:"fight",turn:"h","u.g":unit(me),n:1,log:[`${d.hn} vs ${nn}. Fight!`]}));
+if(r=="ok")duelAttach(c,"g");else duMsg=r=="none"?"No room with that code.":r=="self"?"That is your own room.":"That room is full."}catch(e){duMsg="Could not join."}render()}
+function duelAttach(c,role){duelClose();DU={code:c,role,doc:null,paid:0,busy:0,showFx:0,n:-1,res:"",un:null};
+DU.un=FB.roomSub(c,d=>{if(!DU||DU.code!=c)return;if(!d){duMsg="The room was closed.";duelClose();return render()}
+DU.doc=d;DU.busy=0;if(d.n!==DU.n){DU.n=d.n;DU.showFx=1;setTimeout(()=>{if(DU){DU.showFx=0;render()}},900)}
+if(d.st=="done"&&!DU.paid){DU.paid=1;const won=d.win==DU.role,cc=won?40+pet(S.act).r*10:8;S.coins+=cc;if(won){S.wins++;pub()}save();DU.res=won?`🏆 You won! +${cc} coins`:`💀 You lost. +${cc} coins`}
+if(tab=="arena"&&sub2=="duel")render()})}
+function duelClose(){if(DU&&DU.un){try{DU.un()}catch(e){}}DU=null}
+async function duelLeave(){const D=DU;if(!D)return;try{if(D.doc&&D.doc.st=="wait")await FB.roomDel(D.code);else if(D.doc&&D.doc.st=="fight")await FB.roomUpd(D.code,{st:"done",win:D.role=="h"?"g":"h"})}catch(e){}duelClose();render()}
+function duelView(){const d=DU.doc,r=DU.role,o=r=="h"?"g":"h",mine=r=="h"?d.hp:d.gp,th=r=="h"?d.gp:d.hp,on=r=="h"?d.gn:d.hn;
+const mk=(x,u,n)=>({p:dPet(x,n),hp:u.hp,max:u.max,sh:u.sh,stun:u.stun,psn:u.psn,cd:u.cd||{}});
+return{m:mk(mine,d.u[r],""),o:mk(th,d.u[o],on),fx:DU.showFx?{m:d.fx[r],o:d.fx[o]}:{},pop:DU.showFx?{m:d.pop[r],o:d.pop[o]}:{}}}
+function duelHTML(){
+if(!DU)return `<div class=card><b>🤝 Friend duel</b><div class=mu>Play live against a friend. One of you creates a room, the other types the code. Your active pet fights.</div><button onclick="duelCreate()" ${S.act==null?"disabled":""}>Create room</button><input id=jc placeholder="Friend's 4-letter code" maxlength=4 style="text-transform:uppercase"><button class=s onclick="duelJoin(jc.value)">Join</button><div class=mu>${esc(duMsg)}</div></div>`;
+const d=DU.doc;if(!d)return `<div class=card>Connecting…</div>`;
+if(d.st=="wait")return `<div class=card><b>Room code</b><div style="font-size:44px;font-weight:800;letter-spacing:8px;text-align:center">${esc(DU.code)}</div><div class=mu>Tell your friend to open Arena, tap Duel, and join with this code. Waiting…</div><button class=s onclick="duelLeave()">Cancel</button></div>`;
+const v=duelView(),my=d.turn==DU.role&&d.st=="fight"&&!DU.busy,on=DU.role=="h"?d.gn:d.hn;
+return `<div class=card>${stage(v)}${bar(v.m)}${bar(v.o)}${d.st=="done"?`<div class=${d.win==DU.role?"win":"lose"}>${esc(DU.res)}</div><button onclick="duelLeave()">Back</button>`:my?`<button onclick="duelTurn('atk')">⚔️ Attack</button><button class=s onclick="duelTurn('def')">🛡️ Defend</button>${v.m.p.ab.map(i=>`<button onclick="duelTurn('ab',${i})" ${v.m.cd[i]>0?"disabled":""}>${AB[i].i} ${AB[i].n}${v.m.cd[i]>0?" ("+v.m.cd[i]+")":""}</button>`).join("")}`:`<div class=mu>⏳ ${esc(on)}’s turn…</div>`}${d.st=="fight"?`<br><button class=s onclick="duelLeave()">Forfeit</button>`:""}</div><div class="card log">${(d.log||[]).slice(-8).reverse().map(esc).join("<br>")}</div>`}
+async function duelTurn(k,i){const d=DU&&DU.doc;if(!d||d.st!="fight"||d.turn!=DU.role||DU.busy)return;DU.busy=1;render();
+const r=DU.role,o=r=="h"?"g":"h",mn=r=="h"?d.hn:d.gn,on=r=="h"?d.gn:d.hn,mine=r=="h"?d.hp:d.gp,th=r=="h"?d.gp:d.hp;
+const U=(x,u)=>({p:dPet(x,""),hp:u.hp,max:u.max,sh:u.sh||0,stun:u.stun||0,psn:u.psn||0,cd:{...(u.cd||{})}});
+const sv=B;B={m:U(mine,d.u[r]),o:U(th,d.u[o]),log:[],fx:{},pop:{}};const m=B.m,e=B.o;
+if(m.stun>0){m.stun=0;B.log.push("You are stunned!")}else act("m",k,i);
+let done=e.hp<=0;
+if(!done&&r=="g"){for(const u of [m,e]){if(u.psn>0){u.psn--;u.hp-=5;B.log.push((u===m?"You take":"Enemy takes")+" 5 poison")}for(const x in u.cd)if(u.cd[x]>0)u.cd[x]--}done=m.hp<=0||e.hp<=0}
+const nm=l=>l.replace(/^You take/,mn+" takes").replace(/^Enemy takes/,on+" takes").replace(/^You /,mn+" ").replace(/^Enemy /,on+" ");
+const log=[...(d.log||[]),...B.log.map(nm)].slice(-14),pu=u=>({hp:Math.round(u.hp),max:u.max,sh:u.sh?1:0,stun:u.stun||0,psn:u.psn||0,cd:u.cd});
+const patch={["u."+r]:pu(m),["u."+o]:pu(e),log,fx:{[r]:B.fx.m||"",[o]:B.fx.o||""},pop:{[r]:B.pop.m||"",[o]:B.pop.o||""},n:d.n+1,turn:done?d.turn:o};
+if(done){patch.st="done";patch.win=e.hp<=0?r:m.hp<=0?o:r}
+B=sv;try{await FB.roomUpd(DU.code,patch)}catch(x){if(DU){DU.busy=0;duMsg="Move failed. Try again.";render()}}}
+setTimeout(()=>{if(!window.FB)document.getElementById("v").innerHTML='<div class="card">⚠️ Could not load. Open this from your website link (not from the Files app), and check your internet.</div>'},5000);
+</script>
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,sendEmailVerification}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,doc,getDoc,setDoc,runTransaction,collection,getDocs,query,orderBy,limit,deleteDoc,updateDoc,onSnapshot}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// PASTE YOUR FIREBASE CONFIG HERE (see SETUP.md). Leave apiKey as PASTE_HERE for offline demo mode.
+const CFG={apiKey:"AIzaSyAk4WAdnh3gh0AwclWhoXKfziweiZDK-70",authDomain:"qr-pets-380f0.firebaseapp.com",projectId:"qr-pets-380f0",appId:"1:352724724489:web:221a5d31b3df23e4cec1d8"};
+const FB=window.FB={on:false,user:null};
+try{if(CFG.apiKey!=="PASTE_HERE"){const app=initializeApp(CFG),au=getAuth(app),db=getFirestore(app,"default");FB.on=true;
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,"0")).join("");
+FB.login=(e,p)=>signInWithEmailAndPassword(au,e,p);FB.out=()=>signOut(au);
+let t;FB.save=s=>{clearTimeout(t);t=setTimeout(()=>{if(FB.user&&FB.loaded)setDoc(doc(db,"users",FB.user.uid),JSON.parse(JSON.stringify(s))).catch(()=>{})},800)};
+FB.redeem=async c=>{const r=doc(db,"codes",await sha(c));try{return await runTransaction(db,async tx=>{const d=await tx.get(r);if(!d.exists())return -1;tx.delete(r);return d.data().pet})}catch(e){return -2}};
+FB.pub=o=>setDoc(doc(db,"players",FB.user.uid),o);
+FB.board=async()=>(await getDocs(query(collection(db,"players"),orderBy("wins","desc"),limit(20)))).docs.map(d=>({uid:d.id,...d.data()}));
+FB.market=async()=>(await getDocs(query(collection(db,"market"),orderBy("t","desc"),limit(30)))).docs.map(d=>({id:d.id,...d.data()}));
+FB.list=async o=>{const id=FB.user.uid+"_"+Date.now();await setDoc(doc(db,"market",id),{...o,seller:FB.user.uid,t:Date.now()});return id};
+FB.cancel=async id=>{const r=doc(db,"market",id);return await runTransaction(db,async tx=>{const d=await tx.get(r);if(!d.exists()||d.data().seller!==FB.user.uid)return false;tx.delete(r);return true})};
+FB.buy=async m=>{const r=doc(db,"market",m.id),c=doc(db,"credits",m.seller,"items",m.id);return await runTransaction(db,async tx=>{const d=await tx.get(r);if(!d.exists())return false;tx.delete(r);tx.set(c,{coins:d.data().price,pet:d.data().pet,from:FB.user.uid,t:Date.now()});return true})};
+FB.claim=async()=>{const q=await getDocs(collection(db,"credits",FB.user.uid,"items"));let n=0;for(const d of q.docs){n+=Number(d.data().coins)||0;await deleteDoc(d.ref)}return{n}};
+FB.create=async s=>{try{await setDoc(doc(db,"users",FB.user.uid),JSON.parse(JSON.stringify(s)));return true}catch(e){return false}};
+FB.reload=async()=>{await FB.user.reload();await FB.user.getIdToken(true)};FB.resend=()=>sendEmailVerification(FB.user);
+FB.roomSet=(c,o)=>setDoc(doc(db,"rooms",c),o);FB.roomUpd=(c,p)=>updateDoc(doc(db,"rooms",c),p);FB.roomDel=c=>deleteDoc(doc(db,"rooms",c));
+FB.roomSub=(c,cb)=>onSnapshot(doc(db,"rooms",c),s=>cb(s.exists()?s.data():null),()=>cb(null));
+FB.roomJoin=async(c,mk)=>{const r=doc(db,"rooms",c);return await runTransaction(db,async tx=>{const s=await tx.get(r);if(!s.exists())return"none";const d=s.data();if(d.host===FB.user.uid)return"self";if(d.guest||d.st!=="wait")return"full";tx.update(r,mk(d));return"ok"})};
+FB.signup=async(e,p)=>{const c=await createUserWithEmailAndPassword(au,e,p);try{await sendEmailVerification(c.user)}catch(x){}return c};
+FB.load=async()=>{try{await FB.user.getIdToken(true)}catch(x){}try{const s=await getDoc(doc(db,"users",FB.user.uid));return{ok:1,d:s.exists()?s.data():null}}catch(e){return{ok:0,d:null}}};
+onAuthStateChanged(au,async u=>{FB.user=u;FB.loaded=false;if(!u)return window.onUser(null,null,0);const r=await FB.load();window.onUser(u,r.d,r.ok?0:1)});}}catch(e){FB.on=false}
+if(!FB.on)window.onUser(null,null);
+</script></body></html>
